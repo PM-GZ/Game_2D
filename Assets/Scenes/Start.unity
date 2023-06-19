@@ -392,7 +392,7 @@ PrefabInstance:
       value: 31
       objectReference: {fileID: 0}
     - target: {fileID: 3214858482223364138, guid: 20c0ea6a6fee25443a0d777e84a3494c, type: 3}
-      propertyPath: m_UiScaleMode
+      propertyPath: m_ScreenMatchMode
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5507362426683075241, guid: 20c0ea6a6fee25443a0d777e84a3494c, type: 3}
