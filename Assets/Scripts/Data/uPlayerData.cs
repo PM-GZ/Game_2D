@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 
@@ -7,21 +6,41 @@ using UnityEngine;
 public class uPlayerData : BaseData
 {
     public GameObject Role { get; private set; }
+    public PlayerDataSO TotalPlayerData { get; private set; }
+    public PlayerData Player { get; private set; }
+    public PackageData Package { get; private set; }
+    public TaskData Task { get; private set; }
 
-    public override void Init()
+    public override void InitData()
     {
-
+        InitPlayerData();
     }
 
-    public void InitRole()
+    private void InitPlayerData()
     {
-        CreateRole();
+        string path = Constent.PlayerDataPath;
+        if (!File.Exists(path)) return;
+
+        var file = File.ReadAllText(path);
+        JsonUtility.FromJsonOverwrite(file, TotalPlayerData);
+        if(TotalPlayerData == null) return;
+
+        Player = TotalPlayerData.playerData;
+        Package = TotalPlayerData.packageData;
+        Task = TotalPlayerData.taskData;
     }
 
-    private void CreateRole()
+    public void SavePlayerData()
     {
-        var role = Main.Asset.LoadAsset<GameObject>("Robot");
-        Role = Object.Instantiate(role);
-        Object.DontDestroyOnLoad(Role);
+        var json = JsonUtility.ToJson(TotalPlayerData);
+        File.WriteAllText(Constent.PlayerDataPath, json);
+    }
+
+    public override void ClearData()
+    {
+        TotalPlayerData = null;
+        Player = default;
+        Package = default;
+        Task = default;
     }
 }

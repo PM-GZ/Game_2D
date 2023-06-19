@@ -91,6 +91,9 @@ MonoBehaviour:
     m_LabelNames:
     - default
     - Config
+    - Prefab
+    - Panel
+    - Ui
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 2875fe606eba3ba4fbefc5a20fe0641e, type: 2}

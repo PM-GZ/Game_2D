@@ -9,16 +9,16 @@ public class MultiColumnTreeView : LanguageTreeView
     {
     }
 
-    public static MultiColumnHeaderState CreateDefaultMultiColumnHeaderState(LanguageSO cfg)
-    {
-        if (cfg.languages == null || cfg.languages.Count == 0) return null;
-        var maxColumn = GetMaxColumn(cfg);
-        for (int i = 0; i < maxColumn; i++)
-        {
-            headerContent = new GUIContent("Name");
+    //public static MultiColumnHeaderState CreateDefaultMultiColumnHeaderState(LanguageSO cfg)
+    //{
+    //    if (cfg.languages == null || cfg.languages.Count == 0) return null;
+    //    var maxColumn = GetMaxColumn(cfg);
+    //    for (int i = 0; i < maxColumn; i++)
+    //    {
+    //        headerContent = new GUIContent("Name");
 
-        }
-    }
+    //    }
+    //}
 
     private static int GetMaxColumn(LanguageSO cfg)
     {

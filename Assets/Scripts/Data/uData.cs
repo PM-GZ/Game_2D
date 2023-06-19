@@ -21,21 +21,21 @@ public class uData : BaseObject
         GameData = new();
     }
 
-    public void InitEvent()
+    private void InitEvent()
     {
         Player.InitEvent();
     }
-    public void InitData()
+    private void InitData()
     { 
         Player.InitData();
         GameData.InitData();
     }
 
-    public void ClearEvent()
+    private void ClearEvent()
     { 
         Player.ClearEvent();
     }
-    public void ClearData()
+    private void ClearData()
     { 
         Player.ClearData();
         GameData.ClearData();
@@ -43,6 +43,7 @@ public class uData : BaseObject
 
     public void OnDestroy()
     {
+        Player.SavePlayerData();
         ClearEvent();
         ClearData();
     }

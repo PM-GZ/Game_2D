@@ -1,16 +1,22 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 
 [PanelBind("PanelStart", PanelType.Normal)]
 public class PanelStart : BasePanel
 {
-    [UiBind("Start")] private UiButton mStart;
-    [UiBind("Continue")] private UiButton mContinue;
-    [UiBind("Setting")] private UiButton mSetting;
-    [UiBind("Quit")] private UiButton mQuit;
+    public enum ToggleType
+    {
+        Start,
+        Continue,
+        Setting,
+        Quit
+    }
+
+    [UiBind("Toggles")] private UiToggleGroup mToggles;
+
 
 
 
@@ -21,8 +27,25 @@ public class PanelStart : BasePanel
 
     private void InitButtons()
     {
-        mStart.onClick = OnStartClick;
-        mQuit.onClick = OnQuit;
+        mToggles.InitToggle(OnToggled);
+    }
+
+    private void OnToggled(bool isOn, int index)
+    {
+        if (!isOn) return;
+        switch ((ToggleType)index)
+        {
+            case ToggleType.Start:
+                OnStartClick();
+                break;
+            case ToggleType.Continue:
+                break;
+            case ToggleType.Setting:
+                break;
+            case ToggleType.Quit:
+                OnQuit();
+                break;
+        }
     }
 
     private void OnStartClick()
@@ -32,6 +55,9 @@ public class PanelStart : BasePanel
 
     private void OnQuit()
     {
+#if UNITY_EDITOR
+        EditorApplication.isPlaying = false;
+#endif
         Application.Quit();
     }
 }

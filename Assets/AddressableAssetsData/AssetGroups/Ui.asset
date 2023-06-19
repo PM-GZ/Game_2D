@@ -20,12 +20,16 @@ MonoBehaviour:
   - m_GUID: 8e33f2b0a6c46a24abe5c9ac7c63048e
     m_Address: UiButton
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Prefab
+    - Ui
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1cbf8217502ff194b8b8278c5a046fe1
     m_Address: UiToggleGroup
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Prefab
+    - Ui
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}

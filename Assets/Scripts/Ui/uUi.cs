@@ -46,11 +46,12 @@ public class uUi : BaseObject
         return mUiCamera.WorldToScreenPoint(worldPostion);
     }
 
-    public void CreatePanel<T>() where T : BasePanel
+    public T CreatePanel<T>() where T : BasePanel
     {
         var panel = Activator.CreateInstance<T>();
         mPanelList.Add(panel);
         panel.InitPanel();
+        return panel;
     }
 
     public GameObject LoadPanel(string name, PanelType panelType)

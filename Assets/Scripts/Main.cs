@@ -8,10 +8,10 @@ using UnityEngine;
 public class Main : MonoBehaviour
 {
     public static uAsset Asset { get; private set; }
+    public static uUi Ui { get; private set; }
     public static GameInput Input { get; private set; }
     public static uData Data { get; private set; }
     public static uScene Scene { get; private set; }
-    public static uUi Ui { get; private set; }
 
     private void Start()
     {
@@ -24,11 +24,11 @@ public class Main : MonoBehaviour
     private void InitManager()
     {
         Asset = new();
+        Ui = new();
         Input = new();
         Input.Init();
         Data = new();
         Scene = new();
-        Ui = new();
     }
 
     private void InitUi()
@@ -61,5 +61,6 @@ public class Main : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        Data.OnDestroy();
     }
 }
