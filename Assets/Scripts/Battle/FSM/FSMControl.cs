@@ -34,4 +34,8 @@ public class FSMControl
     {
         CurState?.OnUpdate();
     }
+    public void FixedUpdate()
+    {
+        CurState?.OnFixedUpdate();
+    }
 }

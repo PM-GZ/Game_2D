@@ -4,29 +4,29 @@ using UnityEngine;
 
 public class BaseRoleCtrl : MonoBehaviour
 {
-    public FSMControl fsmCtrl { get; private set; } = new();
-    public Dictionary<BaseFSMState.FSMStateMode, BaseFSMState> fsmStateDict { get; set; } = new();
+    public FSMControl fsmCtrl;
 
     #region Unity 生命周期方法
     private void Start()
     {
-        OnStart(fsmCtrl);
+        OnStart();
     }
 
     private void Update()
     {
-        fsmCtrl.Update();
+        fsmCtrl?.Update();
         OnUpdate();
     }
 
     private void FixedUpdate()
     {
+        fsmCtrl?.FixedUpdate();
         OnFixedUpdate();
     }
     #endregion
 
 
-    protected virtual void OnStart(FSMControl fsmCtrl)
+    protected virtual void OnStart()
     {
 
     }
