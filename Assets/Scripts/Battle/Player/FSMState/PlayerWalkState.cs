@@ -5,6 +5,9 @@ using UnityEngine.InputSystem;
 
 public class PlayerWalkState : BaseFSMState
 {
+    private float mWaklX, mWaklY;
+
+
     public PlayerWalkState(FSMControl fsmCtrl, GameObject role) : base(fsmCtrl, role)
     {
     }
@@ -15,17 +18,17 @@ public class PlayerWalkState : BaseFSMState
 
     public override void OnUpdate()
     {
-        var x = Input.GetAxis("Horizontal");
-        var y = Input.GetAxis("Vertical");
-        if (x != 0 || y != 0)
-        {
-            role.transform.Translate(new Vector3(x, y, 0), Space.World);
-        }
+        mWaklX = Input.GetAxis("Horizontal");
+        mWaklY = Input.GetAxis("Vertical");
+        
     }
 
     public override void OnFixedUpdate()
     {
-
+        if (mWaklX != 0 || mWaklY != 0)
+        {
+            role.transform.Translate(new Vector3(mWaklX, mWaklY, 0) * Time.fixedDeltaTime * 3, Space.World);
+        }
     }
 
     public override void OnExit()

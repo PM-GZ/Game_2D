@@ -42,3 +42,27 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Ground
+    uniqueID: 1849900175
+    locked: 0
+  - name: Grass
+    uniqueID: 1819733009
+    locked: 0
+  - name: Tree
+    uniqueID: 2800499549
+    locked: 0
+  - name: Water
+    uniqueID: 2848286267
+    locked: 0
+  - name: Instance
+    uniqueID: 2201835901
+    locked: 0
+  - name: Frontier
+    uniqueID: 2000782191
+    locked: 0
+  - name: Overlap
+    uniqueID: 573701901
+    locked: 0
+  - name: Collision
+    uniqueID: 1349701693
+    locked: 0
