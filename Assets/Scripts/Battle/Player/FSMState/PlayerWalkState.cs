@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,13 +12,25 @@ public class PlayerWalkState : BaseFSMState
 
     public override void OnEnter()
     {
+        Main.Input.OnSendInput += OnSendMove;
+    }
+
+    private void OnSendMove(GameInput.InputActionName name, InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            var value = context.ReadValue<Vector2>();
+            mWaklX = value.x;
+            mWaklY = value.y;
+        }
+        else if (context.canceled)
+        {
+            mWaklX = mWaklY = 0;
+        }
     }
 
     public override void OnUpdate()
     {
-        mWaklX = Input.GetAxis("Horizontal");
-        mWaklY = Input.GetAxis("Vertical");
-        
     }
 
     public override void OnFixedUpdate()
@@ -33,5 +43,6 @@ public class PlayerWalkState : BaseFSMState
 
     public override void OnExit()
     {
+        Main.Input.OnSendInput -= OnSendMove;
     }
 }

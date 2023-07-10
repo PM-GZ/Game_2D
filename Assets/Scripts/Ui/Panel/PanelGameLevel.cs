@@ -1,5 +1,5 @@
-using System;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 [PanelBind("PanelGameLevel", PanelType.Normal)]
@@ -12,12 +12,12 @@ public class PanelGameLevel : BasePanel
         Difficulty
     }
 
-    [UiBind("Levels")] private UiToggleGroup mLevels;
-    [UiBind("Easy")] private Toggle mEasy;
-    [UiBind("Normal")] private Toggle mNormal;
-    [UiBind("Difficulty")] private Toggle mDifficulty;
-    [UiBind("LevelDes")] private TMP_Text mLevelDes;
-    [UiBind("GameStart")] private UiButton mGameStart;
+    [UiBind("Levels")] private UiToggleGroup _Levels;
+    [UiBind("Easy")] private Toggle _Easy;
+    [UiBind("Normal")] private Toggle _Normal;
+    [UiBind("Difficulty")] private Toggle _Difficulty;
+    [UiBind("LevelDes")] private TMP_Text _LevelDes;
+    [UiBind("StartGame")] private UiButton _StartGame;
 
 
     public override void OnStart()
@@ -27,8 +27,9 @@ public class PanelGameLevel : BasePanel
 
     private void InitButtons()
     {
-        mLevels.InitToggle(OnLevelToggle);
-        mLevels.SetDefaultToggle(0);
+        _Levels.InitToggle(OnLevelToggle);
+        _Levels.SetDefaultToggle(0);
+        _StartGame.onClick = OnGameStartClick;
     }
 
     private void OnLevelToggle(bool isOn, int index)
@@ -38,14 +39,30 @@ public class PanelGameLevel : BasePanel
         switch ((LevelType)index)
         {
             case LevelType.Easy:
-                mLevelDes.text = levelDes.easyLevelDes;
+                _LevelDes.text = levelDes.easyLevelDes;
                 break;
             case LevelType.Normal:
-                mLevelDes.text = levelDes.normalLevelDes;
+                _LevelDes.text = levelDes.normalLevelDes;
                 break;
             case LevelType.Difficulty:
-                mLevelDes.text = levelDes.difficultyLevelDes;
+                _LevelDes.text = levelDes.difficultyLevelDes;
                 break;
         }
+    }
+
+    private void OnGameStartClick()
+    {
+        var param = uScene.SceneParams.Default;
+        param.sceneName = "MainScene";
+        param.onLoadEnd = OnLoadSceneEnd;
+        Main.Scene.SwitchScene(param);
+    }
+
+    private void OnLoadSceneEnd()
+    {
+        Main.Input.SwitchInput(true, true);
+        var prefab = Main.Asset.LoadAsset<GameObject>("Player");
+        var player = Object.Instantiate(prefab);
+        player.AddComponent<PlayerCtrl>();
     }
 }

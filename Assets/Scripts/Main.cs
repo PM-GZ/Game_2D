@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 
@@ -62,5 +61,6 @@ public class Main : MonoBehaviour
     private void OnApplicationQuit()
     {
         Data.OnDestroy();
+        Input.Dispose();
     }
 }
