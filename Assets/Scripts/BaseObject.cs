@@ -33,13 +33,12 @@ public class BaseObject
     #endregion
 
     #region Ð­³Ì
-    public IEnumerator StartCoroutine(IEnumerator coroutine)
+    public void StartCoroutine(IEnumerator coroutine)
     {
         var stack = new Stack<object>();
         stack.Push(coroutine);
         mCoroutineDict.Add(coroutine, stack);
         mCoroutineList.Add(coroutine);
-        yield return coroutine;
     }
 
     private void UpdateCoroutine()
@@ -48,7 +47,7 @@ public class BaseObject
         {
             var coroutine = mCoroutineList[i];
             var stack = mCoroutineDict[coroutine];
-            if (!ExcuteCoroutine(coroutine))
+            if (!ExcuteCoroutine(stack))
             {
                 stack.Pop();
             }
@@ -58,6 +57,21 @@ public class BaseObject
                 mCoroutineDict.Remove(coroutine);
             }
         }
+    }
+
+    private bool ExcuteCoroutine(Stack<object> routineStack)
+    {
+        object routine = routineStack.Peek();
+        IEnumerator ienumator = routine as IEnumerator;
+
+        if (ienumator == null) return false;
+
+        if (ienumator.MoveNext() && ienumator.Current != null)
+        {
+            routineStack.Push(ienumator.Current);
+        }
+
+        return true;
     }
 
     public void StopCoroutine(IEnumerator coroutine)
@@ -74,19 +88,6 @@ public class BaseObject
     {
         mCoroutineList.Clear();
         mCoroutineDict.Clear();
-    }
-
-    private bool ExcuteCoroutine(IEnumerator coroutine)
-    {
-        var stack = mCoroutineDict[coroutine];
-        var obj = stack.Peek() as IEnumerator;
-
-        if (obj == null || !obj.MoveNext()) return false;
-        if (obj.Current == null) return false;
-
-        stack.Push(obj.Current);
-
-        return true;
     }
     #endregion
 

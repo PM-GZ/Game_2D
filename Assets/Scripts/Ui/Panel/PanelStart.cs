@@ -50,7 +50,19 @@ public class PanelStart : BasePanel
 
     private void OnStartClick()
     {
-        Jump<PanelGameLevel>(false, false);
+        var param = uScene.SceneParams.Default;
+        param.sceneName = "MainScene";
+        param.onLoadEnd = OnLoadSceneEnd;
+        Main.Scene.SwitchScene(param);
+        //Jump<PanelGameLevel>(false, false);
+    }
+
+    private void OnLoadSceneEnd()
+    {
+        Main.Input.SwitchInput(true, true);
+        var prefab = Main.Asset.LoadAsset<GameObject>("Player");
+        var player = Object.Instantiate(prefab);
+        player.AddComponent<PlayerCtrl>();
     }
 
     private void OnQuit()

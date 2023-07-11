@@ -23,6 +23,6 @@ public class PanelLoading : BasePanel
     public void SetProgrssValue(float progress)
     {
         _PregressSlider.value = progress;
-        _RatioText.text = (progress * 100).ToString("N2");
+        _RatioText.text = (progress * 100).ToString("N2") + "%";
     }
 }

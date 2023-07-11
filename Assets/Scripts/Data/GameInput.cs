@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 public sealed class GameInput
 {
-    public enum InputActionName
+    public enum InputKey : byte
     {
         Game_Move,
         Game_Fight,
@@ -30,7 +30,7 @@ public sealed class GameInput
     private InputActionAsset _InputAsset;
     private InputActionMap _GameMap;
     private InputActionMap _UiMap;
-    public Action<InputActionName, InputAction.CallbackContext> OnSendInput;
+    public Action<InputKey, InputAction.CallbackContext> OnSendInput;
 
     #region 初始化
     public void Init()
@@ -64,54 +64,57 @@ public sealed class GameInput
     }
     #endregion
 
-
     #region 事件回调方法
     //------------------- Game Action
     private void OnGameMovePerform(InputAction.CallbackContext context)
     {
-        OnSendInput(InputActionName.Game_Move, context);
+        OnSendInput(InputKey.Game_Move, context);
     }
     private void OnGameMoveCanel(InputAction.CallbackContext context)
     {
-        OnSendInput(InputActionName.Game_Move, context);
+        OnSendInput(InputKey.Game_Move, context);
     }
 
     private void OnGameFightPreformed(InputAction.CallbackContext context)
     {
-        OnSendInput(InputActionName.Game_Fight, context);
+        OnSendInput(InputKey.Game_Fight, context);
     }
 
     //------------------- Ui Action
     private void OnUiEscPreformed(InputAction.CallbackContext context)
     {
-        OnSendInput(InputActionName.Ui_Esc, context);
+        OnSendInput(InputKey.Ui_Esc, context);
     }
     #endregion
 
     #region 添加、移除 Input 事件
     private void AddPerformed(string actionName, Action<InputAction.CallbackContext> action)
     {
-        if (!TryGetAction(actionName, out var inputAction)) return;
+        if (!TryGetInputAction(actionName, out var inputAction)) return;
         inputAction.performed += action;
     }
     private void RemovePerformed(string actionName, Action<InputAction.CallbackContext> action)
     {
-        if (!TryGetAction(actionName, out var inputAction)) return;
+        if (!TryGetInputAction(actionName, out var inputAction)) return;
         inputAction.performed -= action;
     }
 
     private void AddPerformedAndCanel(string actionName, Action<InputAction.CallbackContext> perform, Action<InputAction.CallbackContext> cancel)
     {
-        if (!TryGetAction(actionName, out var inputAction)) return;
+        if (!TryGetInputAction(actionName, out var inputAction)) return;
         inputAction.performed += perform;
         inputAction.canceled += cancel;
     }
     private void RemovePerformedAndCanel(string actionName, Action<InputAction.CallbackContext> perform, Action<InputAction.CallbackContext> cancel)
     {
-        if (!TryGetAction(actionName, out var inputAction)) return;
+        if (!TryGetInputAction(actionName, out var inputAction)) return;
         inputAction.performed -= perform;
         inputAction.canceled -= cancel;
     }
+    #endregion
+
+    #region 改建
+
     #endregion
 
     public void SwitchInput(bool ui, bool gameplay)
@@ -135,7 +138,7 @@ public sealed class GameInput
         }
     }
 
-    private bool TryGetAction(string actionName, out InputAction input)
+    private bool TryGetInputAction(string actionName, out InputAction input)
     {
         input = _InputAsset.FindAction(actionName);
         return input != null;

@@ -15,18 +15,11 @@ public class PlayerWalkState : BaseFSMState
         Main.Input.OnSendInput += OnSendMove;
     }
 
-    private void OnSendMove(GameInput.InputActionName name, InputAction.CallbackContext context)
+    private void OnSendMove(GameInput.InputKey name, InputAction.CallbackContext context)
     {
-        if (context.performed)
-        {
-            var value = context.ReadValue<Vector2>();
-            mWaklX = value.x;
-            mWaklY = value.y;
-        }
-        else if (context.canceled)
-        {
-            mWaklX = mWaklY = 0;
-        }
+        var value = context.ReadValue<Vector2>();
+        mWaklX = value.x;
+        mWaklY = value.y;
     }
 
     public override void OnUpdate()

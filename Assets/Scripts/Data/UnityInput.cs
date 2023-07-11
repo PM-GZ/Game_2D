@@ -33,7 +33,7 @@ public partial class @UnityInput: IInputActionCollection2, IDisposable
                     ""id"": ""775339cf-8542-4c1c-a496-7363f16e4f99"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": ""Hold"",
+                    ""interactions"": """",
                     ""initialStateCheck"": true
                 },
                 {
