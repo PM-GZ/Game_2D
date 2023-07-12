@@ -26,7 +26,7 @@ public class uUi : BaseObject
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
-    private List<BasePanel> mPanelList = new();
+    private List<BasePanel> _PanelList = new();
 
     public override void Init()
     {
@@ -49,7 +49,7 @@ public class uUi : BaseObject
     public T CreatePanel<T>() where T : BasePanel
     {
         var panel = Activator.CreateInstance<T>();
-        mPanelList.Add(panel);
+        _PanelList.Add(panel);
         panel.InitPanel();
         return panel;
     }
@@ -106,7 +106,7 @@ public class uUi : BaseObject
     public void ClosePanel(BasePanel panel)
     {
         panel.OnClose();
-        mPanelList.Remove(panel);
+        _PanelList.Remove(panel);
         EnableLastPanel();
     }
 
@@ -121,5 +121,13 @@ public class uUi : BaseObject
         var prefab = Main.Asset.LoadAsset<GameObject>(name);
         var item = Object.Instantiate(prefab, parent);
         return item.GetComponent<T>();
+    }
+
+    public void CloseAll()
+    {
+        for (int i = _PanelList.Count - 1; i >= 0; i--)
+        {
+            _PanelList[i].Close();
+        }
     }
 }

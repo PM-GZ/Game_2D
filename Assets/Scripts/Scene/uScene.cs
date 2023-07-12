@@ -42,6 +42,7 @@ public class uScene : BaseObject
     public void SwitchScene(SceneParams param)
     {
         Main.Input.SwitchInput(false, false);
+        Main.Ui.CloseAll();
 
         _SceneParams = param;
         _ShowProgress = param.showProgress;
