@@ -60,7 +60,7 @@ public class PanelStart : BasePanel
     private void OnLoadSceneEnd()
     {
         Main.Input.SwitchInput(true, true);
-        var prefab = Main.Asset.LoadAsset<GameObject>("Player");
+        var prefab = Main.Asset.LoadAsset<GameObject>("Cat");
         var player = Object.Instantiate(prefab);
         player.AddComponent<PlayerCtrl>();
     }
@@ -69,7 +69,8 @@ public class PanelStart : BasePanel
     {
 #if UNITY_EDITOR
         EditorApplication.isPlaying = false;
-#endif
+# else
         Application.Quit();
+#endif
     }
 }
