@@ -4,11 +4,12 @@ using UnityEngine.UI;
 
 
 [AddComponentMenu("UI/Vertex Image")]
+[RequireComponent(typeof(CanvasRenderer))]
 public class VertexImage : Graphic
 {
     [SerializeField] private Sprite _Sprite;
-    [SerializeField] private float _LineWidth;
-    [SerializeField] private float _LineSpace;
+    [SerializeField][Min(0)] private float _LineWidth;
+    [SerializeField][Min(0)] private float _LineSpace;
     [Header("«„–±")]
     [SerializeField] private float _Incline_Top;
     [SerializeField] private float _Incline_Right;
