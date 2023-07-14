@@ -17,7 +17,7 @@ public struct ExcelData
 
 public class ExportTableEditor
 {
-    private static Dictionary<string, ExcelData> _ExcelDataDict = new();
+    private static Dictionary<string, List<ExcelData>> _ExcelDataDict = new();
     private static StringBuilder _RepeatTableTip = new();
 
     [MenuItem("导表", menuItem = "Tools/导表")]
@@ -52,10 +52,11 @@ public class ExportTableEditor
                 className = sheet.GetValue<string>(i, 4),
             };
 
-            if (!_ExcelDataDict.TryAdd(excelData.tableName, excelData))
+            if (!_ExcelDataDict.ContainsKey(excelData.tableName))
             {
-                _RepeatTableTip.Append($"表：{excelData.tableName} 重复！！！\n");
+                _ExcelDataDict.Add(excelData.tableName, new());
             }
+            _ExcelDataDict[excelData.tableName].Add(excelData);
         }
         excel.Dispose();
     }
@@ -63,28 +64,30 @@ public class ExportTableEditor
     private static StringBuilder _ClassSBuilder = new();
     private static void ReadExcels()
     {
-        foreach (var excelData in _ExcelDataDict)
+        foreach (var excel in _ExcelDataDict)
         {
-            FileInfo fileInfo = new FileInfo($"{Constent.TABLE_CONFIG_PATH}/{excelData.Value.tableName}.xlsx");
-            using (var excel = new ExcelPackage(fileInfo))
+            foreach (var excelData in excel.Value)
             {
-                foreach (var sheet in excel.Workbook.Worksheets)
-                {
-                    _ClassSBuilder.Clear();
-                    AddClassHead(excelData.Value);
-                    ReadRowAndCol(sheet);
-                }
+                _ClassSBuilder.Clear();
+
+                FileInfo fileInfo = new FileInfo($"{Constent.TABLE_CONFIG_PATH}/{excelData.tableName}.xlsx");
+                using var excelPkg = new ExcelPackage(fileInfo);
+
+                var sheet = excelPkg.Workbook.Worksheets[excelData.tableName];
+                AddClassHead(excelData.className);
+                ReadSheet(sheet);
             }
         }
     }
 
-    private static void AddClassHead(ExcelData excelData)
+    private static void AddClassHead(string className)
     {
-        _ClassSBuilder.Append($"public class {excelData.className}\n");
+        _ClassSBuilder.Append($"public class {className}\n");
         _ClassSBuilder.Append(@"{");
+        _ClassSBuilder.Append("\n\t");
     }
 
-    private static void ReadRowAndCol(ExcelWorksheet sheet)
+    private static void ReadSheet(ExcelWorksheet sheet)
     {
         var fieldType = GetCellsValue(sheet, 2);
         for (int i = 3; i <= sheet.Dimension.Rows; i++)
@@ -123,6 +126,10 @@ public class ExportTableEditor
             case "int":
                 break;
             case "uint":
+                break;
+            case "uint[]":
+                break;
+            case "uint[][]":
                 break;
             case "long":
                 break;
