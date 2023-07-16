@@ -15,7 +15,10 @@ public class BasePanel : BaseObject
         LoadPanel();
         InitField();
         OnStart();
-        OnEnable();
+        if(canvasGroup.alpha == 1)
+        {
+            OnEnable();
+        }
     }
 
     private void LoadPanel()
@@ -72,19 +75,6 @@ public class BasePanel : BaseObject
                 }
             }
         }
-    }
-
-    public void Jump<T>(bool close = true, bool active = false) where T : BasePanel
-    {
-        if (close)
-        {
-            Close();
-        }
-        else
-        {
-            Show(active);
-        }
-        Main.Ui.CreatePanel<T>();
     }
 
     public void Show(bool show)

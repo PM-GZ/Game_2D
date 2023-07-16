@@ -35,6 +35,7 @@ public class ExportTableEditor
         }
 
         ReadExcels();
+        AssetDatabase.Refresh();
     }
 
     private static void GetAllExcel(ExcelPackage excel)
@@ -42,7 +43,7 @@ public class ExportTableEditor
         var sheet = excel.Workbook.Worksheets["Tables"];
         for (int i = 2; i <= sheet.Dimension.Rows; i++)
         {
-            if (IsRowEmpty(sheet, i, 1, i)) continue;
+            if (TableUtility.IsRowEmpty(sheet, i, i)) continue;
 
             var excelData = new ExcelData()
             {
@@ -61,6 +62,19 @@ public class ExportTableEditor
         excel.Dispose();
     }
 
+    private static string GetExcel(string tableName)
+    {
+        string[] files = Directory.GetFiles($"{Constent.TABLE_CONFIG_PATH}", $"*xlsx", SearchOption.AllDirectories);
+        foreach (var item in files)
+        {
+            if (Equals(Path.GetFileNameWithoutExtension(item), tableName))
+            {
+                return item;
+            }
+        }
+        return null;
+    }
+
     private static StringBuilder _ClassSBuilder = new();
     private static void ReadExcels()
     {
@@ -70,85 +84,104 @@ public class ExportTableEditor
             {
                 _ClassSBuilder.Clear();
 
-                FileInfo fileInfo = new FileInfo($"{Constent.TABLE_CONFIG_PATH}/{excelData.tableName}.xlsx");
+                string file = GetExcel(excelData.tableName);
+
+                FileInfo fileInfo = new FileInfo(file);
                 using var excelPkg = new ExcelPackage(fileInfo);
 
-                var sheet = excelPkg.Workbook.Worksheets[excelData.tableName];
+                var sheet = excelPkg.Workbook.Worksheets[excelData.sheetName];
                 AddClassHead(excelData.className);
-                ReadSheet(sheet);
+                AddClassField(excelData.sheetName, fileInfo.FullName);
+                AddStructData(sheet);
+                AddClassConstructor(excelData.className);
+                AddClassParseDataFunc(sheet);
+                _ClassSBuilder.Append("\n}");
+
+                CreateClassFile(excelData);
             }
         }
     }
 
     private static void AddClassHead(string className)
     {
-        _ClassSBuilder.Append($"public class {className}\n");
-        _ClassSBuilder.Append(@"{");
+        _ClassSBuilder.Append($"using System;\n");
+        _ClassSBuilder.Append($"using System.Collections.Generic;\n\n\n");
+
+        _ClassSBuilder.Append($"public class {className} : TableData\n");
+        _ClassSBuilder.Append("{");
         _ClassSBuilder.Append("\n\t");
     }
 
-    private static void ReadSheet(ExcelWorksheet sheet)
+    private static void AddClassField(string sheetName, string filePath)
     {
-        var fieldType = GetCellsValue(sheet, 2);
-        for (int i = 3; i <= sheet.Dimension.Rows; i++)
-        {
-            if (IsRowEmpty(sheet, i, 1, i)) continue;
-            var valueDict = GetCellsValue(sheet, i);
-            foreach (var field in fieldType)
-            {
-                CreateTableClass(field.Value, valueDict[field.Key]);
-            }
-        }
+        filePath = filePath.Replace('\\', '/');
+        filePath = filePath.Replace(Application.dataPath, "Assets");
+        _ClassSBuilder.Append($"public readonly string filePath = \"{filePath}\";");
+        _ClassSBuilder.Append($"\n\tpublic readonly sheetName = \"{sheetName}\";");
+        _ClassSBuilder.Append("\n\t");
+        _ClassSBuilder.Append($"public Dictionary<uint, Data> dataDict;\n\n");
     }
 
-    private static Dictionary<int, string> GetCellsValue(ExcelWorksheet sheet, int i)
+    private static void AddStructData(ExcelWorksheet sheet)
     {
-        Dictionary<int, string> values = new();
+        _ClassSBuilder.Append("\n\tpublic struct Data\n\t{");
         for (int j = 1; j <= sheet.Dimension.Columns; j++)
         {
-            values.Add(j, sheet.GetValue<string>(i, j));
+            var field = sheet.GetValue(2, j);
+            var type = sheet.GetValue(3, j);
+            _ClassSBuilder.Append($"\n\t\tpublic {type} {field};");
         }
-        return values;
+        _ClassSBuilder.Append("\n\t}\n\n");
     }
 
-    private static void CreateTableClass(string type, string value)
+    private static void AddClassConstructor(string className)
     {
-        switch (type)
+        _ClassSBuilder.Append($"\tpublic {className}()\n\t{{");
+        _ClassSBuilder.Append("\n\t\tif(rawTable == null)");
+        _ClassSBuilder.Append("\n\t\t{");
+        _ClassSBuilder.Append("\n\t\t\trawTable = new RawTable();");
+        _ClassSBuilder.Append("\n\t\t}");
+        _ClassSBuilder.Append("\n\t\trawTable.ReadTable(filePath, sheetName);");
+        _ClassSBuilder.Append("\n\t\tParseData();");
+        _ClassSBuilder.Append("\n\t}\n");
+    }
+
+    private static void AddClassParseDataFunc(ExcelWorksheet sheet)
+    {
+        _ClassSBuilder.Append("\n\tprivate void ParseData()");
+        _ClassSBuilder.Append("\n\t{");
+        _ClassSBuilder.Append("\n\t\tdataDict = new(rawTable.rowNum - 3);");
+        _ClassSBuilder.Append("\n\t\tfor (int i = 0; i < rawTable.rowNum - 3; i++)\n\t\t{");
+        _ClassSBuilder.Append("\n\t\t\tData data = new();\n\t\t\t");
+
+        string key = "";
+        for (int j = 1; j <= sheet.Dimension.Columns; j++)
         {
-            case "byte":
-                break;
-            case "ubyte":
-                break;
-            case "short":
-                break;
-            case "ushort":
-                break;
-            case "int":
-                break;
-            case "uint":
-                break;
-            case "uint[]":
-                break;
-            case "uint[][]":
-                break;
-            case "long":
-                break;
-            case "ulong":
-                break;
-            case "float":
-                break;
-            case "double":
-                break;
-            case "char":
-                break;
-            case "string":
-                break;
+            if (j == 1)
+            {
+                key = sheet.GetValue(2, j).ToString();
+            }
+            var field = sheet.GetValue(2, j);
+            var type = sheet.GetValue(3, j).ToString();
+
+            int subIndex = type.StartsWith('u') ? 2 : 1;
+            string func = type[..subIndex].ToUpper() + type[subIndex..];
+            _ClassSBuilder.Append($"data.{field} = rawTable.Get{func}(i, {j - 1});\n\t\t\t");
         }
+        _ClassSBuilder.Append($"dataDict.Add(data.{key}, data);");
+        _ClassSBuilder.Append("\n\t\t}");
+        _ClassSBuilder.Append("\n\t\trawTable = null;");
+        _ClassSBuilder.Append("\n\t}");
     }
 
-    private static bool IsRowEmpty(ExcelWorksheet sheet, int startRow, int startCol, int endRow)
+    private static void CreateClassFile(ExcelData excelData)
     {
-        int endCol = sheet.Cells.End.Column;
-        return sheet.Cells[startRow, startCol, endRow, endCol].All(c => c.Value == null);
+        string path = $"{excelData.outputPath}";
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+        File.WriteAllText($"{path}{excelData.className}.cs", _ClassSBuilder.ToString());
+        _ClassSBuilder.Length = 0;
     }
 }
