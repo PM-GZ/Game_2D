@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class uPlayerData : BaseData
 {
+    private const string SAVE_PLAYER_DATA_NAME = "PlayerData";
+
     public GameObject Role { get; private set; }
     public PlayerDataSO TotalPlayerData { get; private set; }
     public PlayerData Player { get; private set; }
@@ -30,14 +32,14 @@ public class uPlayerData : BaseData
         Task = TotalPlayerData.taskData;
     }
 
-    public void SavePlayerData()
+    private void SavePlayerData()
     {
-        var json = JsonUtility.ToJson(TotalPlayerData);
-        File.WriteAllText(Constent.PlayerDataPath, json);
+        FileUtility.WriteFile(SAVE_PLAYER_DATA_NAME, FileUtility.FileType.PlayerData, TotalPlayerData);
     }
 
     public override void ClearData()
     {
+        SavePlayerData();
         TotalPlayerData = null;
         Player = default;
         Package = default;

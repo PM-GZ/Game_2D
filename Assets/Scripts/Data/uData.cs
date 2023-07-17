@@ -43,7 +43,6 @@ public class uData : BaseObject
 
     public void OnDestroy()
     {
-        Player.SavePlayerData();
         ClearEvent();
         ClearData();
     }

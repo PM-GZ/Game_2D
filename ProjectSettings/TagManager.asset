@@ -57,6 +57,9 @@ TagManager:
   - name: Instance
     uniqueID: 2201835901
     locked: 0
+  - name: Instance Top
+    uniqueID: 1613871345
+    locked: 0
   - name: Frontier
     uniqueID: 2000782191
     locked: 0
