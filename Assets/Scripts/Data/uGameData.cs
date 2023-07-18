@@ -1,7 +1,7 @@
 
 
 
-public class uGameData : BaseData
+public class uGameData : DataBase
 {
     public GameLevelDesSO gameLevelDesSO { get; private set; }
 

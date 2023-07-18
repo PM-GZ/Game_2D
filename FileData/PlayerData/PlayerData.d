@@ -1,0 +1,1 @@
+{"playerData":{"playerName":"PMGZ","playerLevel":0,"roleID":0,"sceneIndex":0,"playerPos":{"x":0.0,"y":0.0,"z":0.0}},"packageData":{},"sceneData":{"sceneIndex":0,"sceneName":null},"taskData":{}}

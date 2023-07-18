@@ -1,48 +1,49 @@
-using System.IO;
+using System.Collections;
 using UnityEngine;
 
 
 
-public class uPlayerData : BaseData
+public class uPlayerData : DataBase
 {
     private const string SAVE_PLAYER_DATA_NAME = "PlayerData";
 
-    public GameObject Role { get; private set; }
-    public PlayerDataSO TotalPlayerData { get; private set; }
-    public PlayerData Player { get; private set; }
-    public PackageData Package { get; private set; }
-    public TaskData Task { get; private set; }
+    public GameObject role { get; private set; }
+    public PlayerTotalData totalPlayerData { get; private set; }
+    public PlayerData player { get => totalPlayerData.playerData; }
+    public PackageData package { get => totalPlayerData.packageData; }
+    public TaskData task { get => totalPlayerData.taskData; }
 
     public override void InitData()
     {
         InitPlayerData();
     }
 
+    public override void ClearData()
+    {
+        SavePlayerData();
+        totalPlayerData = null;
+    }
+
     private void InitPlayerData()
     {
-        string path = Constent.PlayerDataPath;
-        if (!File.Exists(path)) return;
+        StartCoroutine(GetPlayerData());
+    }
 
-        var file = File.ReadAllText(path);
-        JsonUtility.FromJsonOverwrite(file, TotalPlayerData);
-        if(TotalPlayerData == null) return;
+    private IEnumerator GetPlayerData()
+    {
+        var task = FileUtility.GetFileAsync<PlayerTotalData>(SAVE_PLAYER_DATA_NAME, FileUtility.FileType.PlayerData);
+        while (!task.IsCompleted)
+        {
+            yield return null;
+        }
+        if (task.Result == null) yield break;
 
-        Player = TotalPlayerData.playerData;
-        Package = TotalPlayerData.packageData;
-        Task = TotalPlayerData.taskData;
+        totalPlayerData = task.Result;
+        Debug.Log(player.playerName);
     }
 
     private void SavePlayerData()
     {
-        FileUtility.WriteFile(SAVE_PLAYER_DATA_NAME, FileUtility.FileType.PlayerData, TotalPlayerData);
-    }
-
-    public override void ClearData()
-    {
-        SavePlayerData();
-        TotalPlayerData = null;
-        Player = default;
-        Package = default;
-        Task = default;
+        FileUtility.WriteFile(SAVE_PLAYER_DATA_NAME, FileUtility.FileType.PlayerData, totalPlayerData);
     }
 }

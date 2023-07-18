@@ -1,20 +1,15 @@
 using System;
-using UnityEngine;
 
 
 
 
-[CreateAssetMenu(fileName = "PlayerData", menuName = "≈‰÷√/ÕÊº“ ˝æ›")]
-public class PlayerDataSO : ScriptableObject
+public class PlayerTotalData
 {
     public PlayerData playerData;
     public PackageData packageData;
     public SceneData sceneData;
     public TaskData taskData;
 }
-
-
-
 
 [Serializable]
 public struct PlayerData
@@ -23,7 +18,7 @@ public struct PlayerData
     public ushort playerLevel;
     public ushort roleID;
     public ushort sceneIndex;
-    public Vector3 playerPos;
+    public uVector3 playerPos;
 }
 
 [Serializable]
@@ -43,4 +38,12 @@ public struct PackageData
 public struct TaskData
 {
 
+}
+
+[Serializable]
+public struct uVector3
+{
+    public float x;
+    public float y;
+    public float z;
 }

@@ -4,7 +4,7 @@
 
 
 
-public class BaseData : BaseObject
+public class DataBase : BaseObject
 {
     public virtual void InitEvent() { }
     public virtual void InitData() { }
