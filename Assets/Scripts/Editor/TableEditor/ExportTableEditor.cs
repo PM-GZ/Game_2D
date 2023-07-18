@@ -62,19 +62,6 @@ public class ExportTableEditor
         excel.Dispose();
     }
 
-    private static string GetExcel(string tableName)
-    {
-        string[] files = Directory.GetFiles($"{Constent.TABLE_CONFIG_PATH}", $"*xlsx", SearchOption.AllDirectories);
-        foreach (var item in files)
-        {
-            if (Equals(Path.GetFileNameWithoutExtension(item), tableName))
-            {
-                return item;
-            }
-        }
-        return null;
-    }
-
     private static StringBuilder _ClassSBuilder = new();
     private static void ReadExcels()
     {
@@ -82,10 +69,8 @@ public class ExportTableEditor
         {
             foreach (var excelData in excel.Value)
             {
-                _ClassSBuilder.Clear();
-
                 string file = GetExcel(excelData.tableName);
-
+                if (file == null) continue;
                 FileInfo fileInfo = new FileInfo(file);
                 using var excelPkg = new ExcelPackage(fileInfo);
 
@@ -98,8 +83,22 @@ public class ExportTableEditor
                 _ClassSBuilder.Append("\n}");
 
                 CreateClassFile(excelData);
+                _ClassSBuilder.Length = 0;
             }
         }
+    }
+
+    private static string GetExcel(string tableName)
+    {
+        string[] files = Directory.GetFiles($"{Constent.TABLE_CONFIG_PATH}", $"*xlsx", SearchOption.AllDirectories);
+        foreach (var item in files)
+        {
+            if (Equals(Path.GetFileNameWithoutExtension(item), tableName))
+            {
+                return item;
+            }
+        }
+        return null;
     }
 
     private static void AddClassHead(string className)
@@ -182,6 +181,5 @@ public class ExportTableEditor
             Directory.CreateDirectory(path);
         }
         File.WriteAllText($"{path}{excelData.className}.cs", _ClassSBuilder.ToString());
-        _ClassSBuilder.Length = 0;
     }
 }
