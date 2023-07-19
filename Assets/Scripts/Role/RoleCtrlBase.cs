@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BaseRoleCtrl : MonoBehaviour
+public class RoleCtrlBase : MonoBehaviour
 {
     public FSMControl fsmCtrl;
 

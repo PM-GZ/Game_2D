@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerWalkState : BaseFSMState
+public class PlayerWalkState : FSMStateBase
 {
     private float mWaklX, mWaklY;
 

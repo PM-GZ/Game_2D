@@ -1,16 +1,16 @@
 using System.Collections.Generic;
-using FSMStateMode = BaseFSMState.FSMStateMode;
+using FSMStateMode = FSMStateBase.FSMStateMode;
 
 
 
 public class FSMControl
 {
     public FSMStateMode StateMdoe { get; private set; }
-    public BaseFSMState CurState { get; private set; }
+    public FSMStateBase CurState { get; private set; }
 
-    private Dictionary<FSMStateMode, BaseFSMState> mStateDict = new();
+    private Dictionary<FSMStateMode, FSMStateBase> mStateDict = new();
 
-    public void AddState(FSMStateMode mode, BaseFSMState state)
+    public void AddState(FSMStateMode mode, FSMStateBase state)
     {
         if(mStateDict.TryGetValue(mode, out var value))
         {

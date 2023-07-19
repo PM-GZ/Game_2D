@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerCtrl : BaseRoleCtrl
+public class PlayerCtrl : RoleCtrlBase
 {
     protected override void OnStart()
     {
         fsmCtrl = new FSMControl();
-        fsmCtrl.AddState(BaseFSMState.FSMStateMode.Walk, new PlayerWalkState(fsmCtrl, gameObject));
-        fsmCtrl.SwitchState(BaseFSMState.FSMStateMode.Walk);
+        fsmCtrl.AddState(FSMStateBase.FSMStateMode.Walk, new PlayerWalkState(fsmCtrl, gameObject));
+        fsmCtrl.SwitchState(FSMStateBase.FSMStateMode.Walk);
     }
 }

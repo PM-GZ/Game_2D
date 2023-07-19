@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public abstract class BaseFSMState
+public abstract class FSMStateBase
 {
     public enum FSMStateMode : byte
     {
@@ -13,7 +13,7 @@ public abstract class BaseFSMState
     public FSMControl fsmCtrl { get; private set; }
     public GameObject role { get; private set; }
 
-    public BaseFSMState(FSMControl fsmCtrl, GameObject role)
+    public FSMStateBase(FSMControl fsmCtrl, GameObject role)
     {
         this.fsmCtrl = fsmCtrl;
         this.role = role;
