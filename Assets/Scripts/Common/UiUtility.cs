@@ -7,7 +7,7 @@ public static class UiUtility
     public static T CreateItem<T>(Transform parent = null) where T : UiItemBase
     {
         var name = typeof(T).Name;
-        var prefab = Main.Asset.LoadAsset<GameObject>(name);
+        var prefab = uAsset.LoadAsset<GameObject>(name);
         var item = Object.Instantiate(prefab, parent, false);
         return item.GetComponent<T>();
     }

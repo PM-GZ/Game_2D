@@ -1,46 +1,88 @@
+using System;
 using System.Collections.Generic;
-using System.IO;
+using UnityEngine;
+using UnityEngine.Pool;
+using UnityEngine.SceneManagement;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
-using UnityEngine.SceneManagement;
-using Newtonsoft.Json;
+using Object = UnityEngine.Object;
 
 
-public class uAsset : BaseObject
+public class uAsset
 {
-    public struct AssetData
+    private static Dictionary<Type, ObjectPool<GameBehaviour>> _goPoolDict = new();
+
+
+
+    private static GameBehaviour GetGO<T>(int maxCount = 30) where T : GameBehaviour, new()
     {
-        public string name;
-        public string path;
+        if (!_goPoolDict.TryGetValue(typeof(T), out var goPool))
+        {
+            goPool = new (() => { return new T(); }, OnGet, OnRelease, OnDestroy, true, 0, maxCount);
+        }
+        return goPool.Get();
     }
 
-    private static Dictionary<string, List<AssetData>> mAssetDict = new();
-    public override void Init()
+    #region gameObject对象池方法
+    private static void OnGet(GameBehaviour gb)
     {
+        gb.OnReset();
     }
 
-    public T LoadAsset<T>(string assetName)
+    private static void OnRelease(GameBehaviour gb)
+    {
+        gb.OnRelease();
+    }
+
+    private static void OnDestroy(GameBehaviour gb)
+    {
+        gb.Destroy();
+    }
+    #endregion
+
+
+    /// <summary>
+    /// pool 为 true 时，此类型对象会从对象池创建和获取
+    /// </summary>
+    public static T GetGameObject<T>(bool pool = false, int maxCount = 30) where T : GameBehaviour, new()
+    {
+        GameBehaviour gb = pool ? GetGO<T>(maxCount) : new T();
+        return gb as T;
+    }
+
+    public static GameObject LoadGameObject(string goName, bool loadAndRelease = true)
+    {
+        var prefab = LoadAsset<GameObject>(goName);
+        var go = Object.Instantiate(prefab, null, false);
+        if (loadAndRelease)
+        {
+            Addressables.ReleaseInstance(prefab);
+        }
+        return go;
+    }
+
+    public static T LoadAsset<T>(string assetName)
     {
         return LoadAssetAsync<T>(assetName).WaitForCompletion();
     }
 
-    public AsyncOperationHandle<T> LoadAssetAsync<T>(string assetName)
+    public static AsyncOperationHandle<T> LoadAssetAsync<T>(string assetName)
     {
         return Addressables.LoadAssetAsync<T>(assetName);
     }
 
-    public IList<T> LoadAsssets<T>(string lable)
+    public static IList<T> LoadAsssets<T>(string lable)
     {
         return LoadAssetsAsync<T>(lable).WaitForCompletion();
     }
 
-    public AsyncOperationHandle<IList<T>> LoadAssetsAsync<T>(string lable)
+    public static AsyncOperationHandle<IList<T>> LoadAssetsAsync<T>(string lable)
     {
         return Addressables.LoadAssetsAsync<T>(lable, null, true);
     }
 
-    public AsyncOperationHandle<SceneInstance> LoadSceneAsync(string path, LoadSceneMode mode = LoadSceneMode.Single, bool activeOnLoad = true)
+    public static AsyncOperationHandle<SceneInstance> LoadSceneAsync(string path, LoadSceneMode mode = LoadSceneMode.Single, bool activeOnLoad = true)
     {
         return Addressables.LoadSceneAsync(path, mode, activeOnLoad);
     }

@@ -1,43 +1,26 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoleCtrlBase : MonoBehaviour
+public class RoleCtrlBase : GameBehaviour
 {
     public FSMControl fsmCtrl;
 
-    #region Unity 生命周期方法
-    private void Start()
+
+    public RoleCtrlBase()
     {
+        var t = GetType();
+        var attrs = t.GetCustomAttributes(true);
+        if (attrs == null || attrs.Length == 0) return;
+
+        var attr = attrs[0] as RoleBindAttribute;
+        gameObject = uAsset.LoadGameObject(attr.roleName); 
         OnStart();
-    }
-
-    private void Update()
-    {
-        fsmCtrl?.Update();
-        OnUpdate();
-    }
-
-    private void FixedUpdate()
-    {
-        fsmCtrl?.FixedUpdate();
-        OnFixedUpdate();
-    }
-    #endregion
-
-
-    protected virtual void OnStart()
-    {
-
-    }
-
-    protected virtual void OnUpdate()
-    {
-
-    }
-
-    protected virtual void OnFixedUpdate()
-    {
-
+        if (gameObject.activeSelf)
+        {
+            OnEnable();
+        }
+        behaviours.Add(this);
     }
 }

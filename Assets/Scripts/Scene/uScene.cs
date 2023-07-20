@@ -55,7 +55,7 @@ public class uScene : BaseObject
         _SceneParams.onLoadStart?.Invoke();
 
         var loading = Main.Ui.CreatePanel<PanelLoading>();
-        _SceneAsync = Main.Asset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
+        _SceneAsync = uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
         while (!_SceneAsync.IsDone)
         {
             loading.SetProgrssValue(_SceneAsync.PercentComplete);

@@ -58,9 +58,7 @@ public class PanelStart : PanelBase
     {
         Main.Input.SwitchInput(true, true);
 
-        var prefab = Main.Asset.LoadAsset<GameObject>("Cat");
-        var player = Object.Instantiate(prefab);
-        player.AddComponent<PlayerCtrl>();
+        uAsset.GetGameObject<PlayerCtrl>();
 
         Main.Ui.CreatePanel<PanelPlayerUi>();
     }

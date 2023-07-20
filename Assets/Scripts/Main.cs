@@ -13,7 +13,6 @@ public class Main : MonoBehaviour
 {
     private static bool _initFlag = false;
 
-    public static uAsset Asset { get; private set; }
     public static uUi Ui { get; private set; }
     public static GameInput Input { get; private set; }
     public static uData Data { get; private set; }
@@ -54,7 +53,6 @@ public class Main : MonoBehaviour
 
     private void InitManager()
     {
-        Asset = new();
         Input = new();
         Data = new();
         Scene = new();
@@ -79,10 +77,12 @@ public class Main : MonoBehaviour
 
     private void FixedUpdate()
     {
+        GameBehaviour.FixedUpdate();
     }
 
     private void LateUpdate()
     {
+        GameBehaviour.LateUpdate();
     }
 
     private void OnApplicationFocus(bool focus)

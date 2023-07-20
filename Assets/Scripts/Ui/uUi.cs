@@ -31,7 +31,6 @@ public class uUi : BaseObject
 
     private Stack<PanelBase> _panelList = new();
     private Dictionary<string, PanelBase> _foreverPanel = new();
-    private bool _gamePause;
 
 
     #region override
@@ -48,18 +47,6 @@ public class uUi : BaseObject
 
         InitInputEvent();
     }
-
-    public override void OnUpdate()
-    {
-        if(Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (_gamePause)
-            {
-                Time.timeScale = 1.0f;
-                _gamePause = false;
-            }
-        }
-    }
     #endregion
 
     private void InitInputEvent()
@@ -73,12 +60,12 @@ public class uUi : BaseObject
         if (key != GameInput.InputKey.Ui_Esc || context.performed == false) return;
         if (_panelList.Count > 1)
         {
+            Time.timeScale = 1;
             var panel = _panelList.Peek();
             ClosePanel(panel);
         }
         else
         {
-            _gamePause = true;
             Time.timeScale = 0;
             CreatePanel<PanelESC>();
         }
@@ -128,7 +115,7 @@ public class uUi : BaseObject
                 parent = mTop;
                 break;
         }
-        var panel = Main.Asset.LoadAsset<GameObject>(name);
+        var panel = uAsset.LoadAsset<GameObject>(name);
         panel = Object.Instantiate(panel, parent);
         panel.name = name;
         SetComponent(panel);
