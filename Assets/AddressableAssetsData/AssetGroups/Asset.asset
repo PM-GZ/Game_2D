@@ -16,13 +16,7 @@ MonoBehaviour:
   m_Data:
     m_SerializedData: []
   m_GUID: 89377cccc2b3c464c8abf47933f79441
-  m_SerializeEntries:
-  - m_GUID: ed056d53363c86a49b2f35833af950f6
-    m_Address: GameLevelDesCfg
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Config
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}
   m_SchemaSet:

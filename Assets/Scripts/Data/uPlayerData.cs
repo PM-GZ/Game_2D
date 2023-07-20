@@ -39,7 +39,6 @@ public class uPlayerData : DataBase
         if (task.Result == null) yield break;
 
         totalPlayerData = task.Result;
-        Debug.Log(player.playerName);
     }
 
     private void SavePlayerData()

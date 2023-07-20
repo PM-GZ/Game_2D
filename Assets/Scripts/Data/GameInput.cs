@@ -32,8 +32,15 @@ public sealed class GameInput
     private InputActionMap _UiMap;
     public Action<InputKey, InputAction.CallbackContext> OnSendInput;
 
+    public GameInput()
+    {
+        Init();
+    }
+
+
+
     #region ≥ı ºªØ
-    public void Init()
+    private void Init()
     {
         LoadInputAsset();
         SwitchInput(true, false);
@@ -144,8 +151,19 @@ public sealed class GameInput
         return input != null;
     }
 
+    private void RemoveEvent()
+    {
+        //------------------- Game Action
+        RemovePerformedAndCanel(GAME_ACTION_KEY_MOVE, OnGameMovePerform, OnGameMoveCanel);
+        RemovePerformed(GAME_ACTION_KEY_FIGHT, OnGameFightPreformed);
+
+        //------------------- Ui Action
+        RemovePerformed(UI_ACTION_KEY_ESC, OnUiEscPreformed);
+    }
+
     public void Dispose()
     {
+        RemoveEvent();
         _UiMap?.Dispose();
         _GameMap?.Dispose();
     }

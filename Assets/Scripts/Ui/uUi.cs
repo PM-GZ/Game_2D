@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
+
+
 
 
 public enum PanelType
@@ -26,12 +29,15 @@ public class uUi : BaseObject
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
-    private List<BasePanel> _PanelList = new();
+    private Stack<PanelBase> _panelList = new();
+    private Dictionary<string, PanelBase> _foreverPanel = new();
+    private bool _gamePause;
 
+
+    #region override
     public override void Init()
     {
         mCanvas = GameObject.Find("Canvas").GetComponent<Canvas>();
-        Object.DontDestroyOnLoad(mCanvas);
 
         mUiCamera = mCanvas.transform.Find("UiCamera").GetComponent<Camera>();
         mBackground = mCanvas.transform.Find("Backgorund");
@@ -39,22 +45,69 @@ public class uUi : BaseObject
         mFixed = mCanvas.transform.Find("Fixed");
         mDialog = mCanvas.transform.Find("Dialog");
         mTop = mCanvas.transform.Find("Top");
+
+        InitInputEvent();
     }
+
+    public override void OnUpdate()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (_gamePause)
+            {
+                Time.timeScale = 1.0f;
+                _gamePause = false;
+            }
+        }
+    }
+    #endregion
+
+    private void InitInputEvent()
+    {
+        Main.Input.OnSendInput += OnECSInput;
+    }
+
+    #region Input Action Func
+    private void OnECSInput(GameInput.InputKey key, InputAction.CallbackContext context)
+    {
+        if (key != GameInput.InputKey.Ui_Esc || context.performed == false) return;
+        if (_panelList.Count > 1)
+        {
+            var panel = _panelList.Peek();
+            ClosePanel(panel);
+        }
+        else
+        {
+            _gamePause = true;
+            Time.timeScale = 0;
+            CreatePanel<PanelESC>();
+        }
+    }
+    #endregion
+
 
     public Vector3 GetScreenPostion(Vector3 worldPostion)
     {
         return mUiCamera.WorldToScreenPoint(worldPostion);
     }
 
-    public T CreatePanel<T>() where T : BasePanel
+    public T CreatePanel<T>() where T : PanelBase
     {
-        var panel = Activator.CreateInstance<T>();
-        _PanelList.Add(panel);
-        panel.InitPanel();
-        return panel;
+        if (!_foreverPanel.TryGetValue(typeof(T).Name, out var panel))
+        {
+            panel = Activator.CreateInstance<T>();
+            panel.InitPanel();
+            SetForeverPanel(panel);
+        }
+        panel.Show(true);
+        panel.transform.SetAsLastSibling();
+        _panelList.Push(panel);
+
+        return panel as T;
     }
 
-    public GameObject LoadPanel(string name, PanelType panelType)
+    #region UiHandle Func
+    public GameObject LoadPanelGO(string name, PanelType panelType)
     {
         Transform parent = mNormal;
         switch (panelType)
@@ -88,6 +141,7 @@ public class uUi : BaseObject
         panel.AddComponent<CanvasGroup>();
         panel.AddComponent<GraphicRaycaster>();
 
+        canvas.vertexColorAlwaysGammaSpace = true;
         SetSortingOrder(panel.transform, canvas);
     }
 
@@ -96,38 +150,59 @@ public class uUi : BaseObject
         int sortOrder = parent.GetComponent<Canvas>().sortingOrder;
         foreach (var child in parent.GetComponentsInChildren<Canvas>(true))
         {
-            if(child == parent) continue;
+            if (child == parent) continue;
             ++sortOrder;
         }
         canvas.overrideSorting = true;
         canvas.sortingOrder = sortOrder;
     }
 
-    public void ClosePanel(BasePanel panel)
+    public void SetForeverPanel(PanelBase panel)
     {
-        panel.OnClose();
-        _PanelList.Remove(panel);
-        EnableLastPanel();
+        if (!panel.forever) return;
+        _foreverPanel.Add(panel.gameObject.name, panel);
     }
+    #endregion
 
     private void EnableLastPanel()
     {
+        if (_panelList.Count > 0)
+        {
+            var panel = _panelList.Peek();
+            panel.Show(true);
+        }
+        else
+        {
 
+        }
     }
 
-    public T CreateItem<T>(Transform parent = null) where T : UiItemBase
+    #region Close Panel
+    public void ClosePanel(PanelBase panel, bool showNext = true)
     {
-        var name = typeof(T).Name;
-        var prefab = Main.Asset.LoadAsset<GameObject>(name);
-        var item = Object.Instantiate(prefab, parent);
-        return item.GetComponent<T>();
+        panel.OnClose();
+        _panelList.Pop();
+        if (panel.forever)
+        {
+            panel.Show(false);
+        }
+        else
+        {
+            Object.Destroy(panel.gameObject);
+        }
+        if (showNext)
+        {
+            EnableLastPanel();
+        }
     }
 
     public void CloseAll()
     {
-        for (int i = _PanelList.Count - 1; i >= 0; i--)
+        for (int i = _panelList.Count - 1; i >= 0; i--)
         {
-            _PanelList[i].Close();
+            var panel = _panelList.Peek();
+            ClosePanel(panel, false);
         }
     }
+    #endregion
 }

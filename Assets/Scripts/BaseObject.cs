@@ -43,7 +43,7 @@ public class BaseObject
 
     private void UpdateCoroutine()
     {
-        for (int i = mCoroutineList.Count - 1; i >= 0; --i)
+        for (int i = mCoroutineList.Count - 1; i >= 0 && mCoroutineList.Count > 0; --i)
         {
             var coroutine = mCoroutineList[i];
             var stack = mCoroutineDict[coroutine];

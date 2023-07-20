@@ -45,6 +45,20 @@ MonoBehaviour:
     - Prefab
     - Panel
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12f70799cda594347b56f7388eaf1e1c
+    m_Address: PanelESC
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Prefab
+    - Panel
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3530d218d2ab9024a810e66fcfefa3b0
+    m_Address: PanelPlayerUi
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Prefab
+    - Panel
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}
   m_SchemaSet:

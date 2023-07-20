@@ -12,11 +12,13 @@ public class PlayerWalkState : FSMStateBase
 
     public override void OnEnter()
     {
-        Main.Input.OnSendInput += OnSendMove;
+        Main.Input.OnSendInput += OnMoveInput;
     }
 
-    private void OnSendMove(GameInput.InputKey name, InputAction.CallbackContext context)
+    private void OnMoveInput(GameInput.InputKey key, InputAction.CallbackContext context)
     {
+        if (key != GameInput.InputKey.Game_Move) return;
+
         var value = context.ReadValue<Vector2>();
         mWaklX = value.x;
         mWaklY = value.y;
@@ -36,6 +38,6 @@ public class PlayerWalkState : FSMStateBase
 
     public override void OnExit()
     {
-        Main.Input.OnSendInput -= OnSendMove;
+        Main.Input.OnSendInput -= OnMoveInput;
     }
 }

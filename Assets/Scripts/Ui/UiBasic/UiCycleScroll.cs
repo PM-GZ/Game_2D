@@ -111,11 +111,12 @@ public class UiCycleScroll : UiLayoutBase
     {
         for (int i = 0; i < _childCount; i++)
         {
-            var item = Main.Ui.CreateItem<T>(content);
-            items.Add(item);
+            var item = UiUtility.CreateItem<T>(content);
             item.index = i;
             SetItemRect(item);
             SetItemPos(item, i);
+
+            items.Add(item);
         }
         _minIndex = 0;
         _maxIndex = items.Count - 1;
