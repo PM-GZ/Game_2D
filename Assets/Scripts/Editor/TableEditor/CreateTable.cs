@@ -7,7 +7,7 @@ using OfficeOpenXml;
 
 public class CreateTable
 {
-    [MenuItem("New Table", menuItem = "Assets/Create/配置/创建xlsx")]
+    [MenuItem("New Table", menuItem = "Assets/Create/配置/创建xlsx", priority = 1)]
     private static void Create()
     {
         string path = EditorUtility.SaveFilePanel("创建Excel", Constent.TABLE_CONFIG_PATH, "New Table.xlsx", "xlsx");

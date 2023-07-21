@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 
@@ -160,8 +160,13 @@ public class uUi : BaseObject
         }
         else
         {
-
+            CreatePanel<PanelPlayerUi>();
         }
+    }
+
+    public void FedeUi()
+    {
+
     }
 
     #region Close Panel
