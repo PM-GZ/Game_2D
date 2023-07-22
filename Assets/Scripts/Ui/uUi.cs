@@ -93,6 +93,15 @@ public class uUi : BaseObject
         return panel as T;
     }
 
+    public T GetPanel<T>() where T : PanelBase
+    {
+        foreach (var panel in _panelList)
+        {
+            if (panel is T) return panel as T;
+        }
+        return null;
+    }
+
     #region UiHandle Func
     public GameObject LoadPanelGO(string name, PanelType panelType)
     {
@@ -162,11 +171,6 @@ public class uUi : BaseObject
         {
             CreatePanel<PanelPlayerUi>();
         }
-    }
-
-    public void FedeUi()
-    {
-
     }
 
     #region Close Panel

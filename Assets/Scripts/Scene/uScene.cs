@@ -39,6 +39,34 @@ public class uScene : BaseObject
     {
     }
 
+    public void FadeScene(SceneParams param)
+    {
+        Main.Input.SwitchInput(false, false);
+        Main.Ui.CloseAll();
+
+        _SceneParams = param;
+        _SceneCoroutine = ExcuteFadeScene();
+        StartCoroutine(_SceneCoroutine);
+    }
+
+    private IEnumerator ExcuteFadeScene()
+    {
+        var fade = Main.Ui.CreatePanel<PanelFade>();
+        fade.StartFade();
+
+        _SceneParams.onLoadStart?.Invoke();
+        _SceneAsync = uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
+        while (!_SceneAsync.IsDone)
+        {
+            yield return null;
+        }
+        _SceneAsync = default;
+        _SceneCoroutine = null;
+
+        _SceneParams.onLoadEnd?.Invoke();
+        fade.EndFade();
+    }
+
     public void SwitchScene(SceneParams param)
     {
         Main.Input.SwitchInput(false, false);
