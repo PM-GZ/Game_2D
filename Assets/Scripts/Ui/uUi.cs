@@ -30,7 +30,7 @@ public class uUi : BaseObject
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
     private Stack<PanelBase> _panelList = new();
-    private Dictionary<string, PanelBase> _foreverPanel = new();
+    private List<PanelBase> _foreverPanel = new();
 
 
     #region override
@@ -72,15 +72,10 @@ public class uUi : BaseObject
     }
     #endregion
 
-
-    public Vector3 GetScreenPostion(Vector3 worldPostion)
-    {
-        return mUiCamera.WorldToScreenPoint(worldPostion);
-    }
-
     public T CreatePanel<T>() where T : PanelBase
     {
-        if (!_foreverPanel.TryGetValue(typeof(T).Name, out var panel))
+        PanelBase panel = GetForeverPanel<T>();
+        if (panel == null)
         {
             panel = Activator.CreateInstance<T>();
             panel.InitPanel();
@@ -93,6 +88,12 @@ public class uUi : BaseObject
         return panel as T;
     }
 
+    #region Get Func
+    public Vector3 GetScreenPostion(Vector3 worldPostion)
+    {
+        return mUiCamera.WorldToScreenPoint(worldPostion);
+    }
+
     public T GetPanel<T>() where T : PanelBase
     {
         foreach (var panel in _panelList)
@@ -101,6 +102,16 @@ public class uUi : BaseObject
         }
         return null;
     }
+
+    public T GetForeverPanel<T>() where T : PanelBase
+    {
+        foreach (var panel in _foreverPanel)
+        {
+            if (panel is T) return panel as T;
+        }
+        return null;
+    }
+    #endregion
 
     #region UiHandle Func
     public GameObject LoadPanelGO(string name, PanelType panelType)
@@ -155,8 +166,9 @@ public class uUi : BaseObject
 
     public void SetForeverPanel(PanelBase panel)
     {
-        if (!panel.forever) return;
-        _foreverPanel.Add(panel.gameObject.name, panel);
+        if (!panel.forever || _foreverPanel.Contains(panel)) return;
+        
+        _foreverPanel.Add(panel);
     }
     #endregion
 

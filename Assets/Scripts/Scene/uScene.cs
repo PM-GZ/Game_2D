@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
 public class uScene : BaseObject
@@ -10,9 +12,9 @@ public class uScene : BaseObject
         public string sceneName;
         public LoadSceneMode mode;
         public bool activeOnLoad;
-        public bool showProgress;
         public Action onLoadStart;
         public Action onLoadEnd;
+        public Action<SceneInstance> onComplete;
 
         public static SceneParams Default 
         {
@@ -22,18 +24,17 @@ public class uScene : BaseObject
                 param.sceneName = string.Empty;
                 param.mode = LoadSceneMode.Single;
                 param.activeOnLoad = true;
-                param.showProgress = true;
                 param.onLoadStart = null;
                 param.onLoadEnd = null;
+                param.onComplete = null;
                 return param;
             }
         }
     }
 
     private SceneParams _SceneParams;
-    private AsyncOperationHandle _SceneAsync;
+    private AsyncOperationHandle<SceneInstance> _SceneAsync;
     private IEnumerator _SceneCoroutine;
-    private bool _ShowProgress;
 
     public override void Init()
     {
@@ -60,11 +61,13 @@ public class uScene : BaseObject
         {
             yield return null;
         }
+        fade.EndFade();
+        _SceneParams.onLoadEnd?.Invoke();
+        _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
+
         _SceneAsync = default;
         _SceneCoroutine = null;
 
-        _SceneParams.onLoadEnd?.Invoke();
-        fade.EndFade();
     }
 
     public void SwitchScene(SceneParams param)
@@ -73,7 +76,6 @@ public class uScene : BaseObject
         Main.Ui.CloseAll();
 
         _SceneParams = param;
-        _ShowProgress = param.showProgress;
         _SceneCoroutine = ExcuteSwitchScene();
         StartCoroutine(_SceneCoroutine);
     }
@@ -89,11 +91,11 @@ public class uScene : BaseObject
             loading.SetProgrssValue(_SceneAsync.PercentComplete);
             yield return null;
         }
+        _SceneParams.onLoadEnd?.Invoke();
+        _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
 
         loading.Close();
         _SceneAsync = default;
         _SceneCoroutine = null;
-
-        _SceneParams.onLoadEnd?.Invoke();
     }
 }
