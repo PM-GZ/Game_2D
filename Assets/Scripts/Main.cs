@@ -54,8 +54,8 @@ public class Main : MonoBehaviour
     private void InitManager()
     {
         Input = new();
-        Data = new();
         Scene = new();
+        Data = new();
         Ui = new();
     }
 

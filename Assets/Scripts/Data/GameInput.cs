@@ -8,6 +8,7 @@ public sealed class GameInput
     {
         Game_Move,
         Game_Fight,
+        Game_Interaction,
 
         Ui_Esc
     }
@@ -20,6 +21,7 @@ public sealed class GameInput
     #region ActionKey
     public const string GAME_ACTION_KEY_MOVE = "Move";
     public const string GAME_ACTION_KEY_FIGHT = "Fight";
+    public const string GAME_ACTION_KEY_INTERACTION = "Interaction";
 
     public const string UI_ACTION_KEY_ESC = "Esc";
     #endregion
@@ -30,7 +32,7 @@ public sealed class GameInput
     private InputActionAsset _InputAsset;
     private InputActionMap _GameMap;
     private InputActionMap _UiMap;
-    public Action<InputKey, InputAction.CallbackContext> OnSendInput;
+    public event Action<InputKey, InputAction.CallbackContext> OnSendInput;
 
     public GameInput()
     {
@@ -65,6 +67,7 @@ public sealed class GameInput
         //------------------- Game Action
         AddPerformedAndCanel(GAME_ACTION_KEY_MOVE, OnGameMovePerform, OnGameMoveCanel);
         AddPerformed(GAME_ACTION_KEY_FIGHT, OnGameFightPreformed);
+        AddPerformed(GAME_ACTION_KEY_INTERACTION, OnGameInteractionPreformed);
 
         //------------------- Ui Action
         AddPerformed(UI_ACTION_KEY_ESC, OnUiEscPreformed);
@@ -85,6 +88,11 @@ public sealed class GameInput
     private void OnGameFightPreformed(InputAction.CallbackContext context)
     {
         OnSendInput(InputKey.Game_Fight, context);
+    }
+
+    private void OnGameInteractionPreformed(InputAction.CallbackContext context)
+    {
+        OnSendInput(InputKey.Game_Interaction, context);
     }
 
     //------------------- Ui Action

@@ -8,6 +8,7 @@ public static class FileUtility
     public enum FileType
     {
         PlayerData,
+        MapData,
     }
 
     private static void Write(string fileName, FileType fileType, byte[] data)

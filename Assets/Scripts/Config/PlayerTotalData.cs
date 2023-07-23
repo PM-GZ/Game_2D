@@ -1,7 +1,5 @@
 using System;
-
-
-
+using System.Collections.Generic;
 
 public class PlayerTotalData
 {
@@ -9,33 +7,79 @@ public class PlayerTotalData
     public PackageData packageData;
     public SceneData sceneData;
     public TaskData taskData;
+
+    //public static PlayerTotalData Default
+    //{
+    //    get
+    //    {
+    //        PlayerTotalData data = new PlayerTotalData();
+    //        data.playerData = PlayerData.Default;
+    //        data.packageData = PackageData.Default;
+    //        return data;
+    //    }
+    //}
 }
 
 [Serializable]
-public struct PlayerData
+public class PlayerData
 {
     public string playerName;
     public ushort playerLevel;
     public ushort roleID;
     public ushort sceneIndex;
     public uVector3 playerPos;
+
+    //public static PlayerData Default
+    //{
+    //    get
+    //    {
+    //        PlayerData data = new PlayerData();
+    //        data.playerName = "";
+    //        data.playerLevel = 0;
+    //        data.roleID = 0;
+    //        data.sceneIndex = 0;
+    //        data.playerPos = new uVector3(0, 0, 0);
+    //        return data;
+    //    }
+    //}
 }
 
 [Serializable]
-public struct SceneData
+public class PackageData
+{
+    public Dictionary<uint, int> goodsDict;
+
+    //public static PackageData Default
+    //{
+    //    get
+    //    {
+    //        PackageData data = new PackageData();
+    //        data.goodsDict = new();
+    //        return data;
+    //    }
+    //}
+}
+
+[Serializable]
+public class SceneData
 {
     public ushort sceneIndex;
     public string sceneName;
+
+    //public static SceneData Default
+    //{
+    //    get
+    //    {
+    //        SceneData data = new SceneData();
+    //        data.sceneIndex = 0;
+    //        data.sceneName = "";
+    //        return data;
+    //    }
+    //}
 }
 
 [Serializable]
-public struct PackageData
-{
-
-}
-
-[Serializable]
-public struct TaskData
+public class TaskData
 {
 
 }
@@ -46,4 +90,11 @@ public struct uVector3
     public float x;
     public float y;
     public float z;
+
+    public uVector3(int v1, int v2, int v3) : this()
+    {
+        x = v1;
+        y = v2;
+        z = v3;
+    }
 }

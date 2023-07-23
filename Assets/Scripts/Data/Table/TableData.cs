@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 public static class TABLE
 {
@@ -631,7 +632,7 @@ public class RawTable
         if (!CheckRowCol(row, column)) return 0;
         if (colType[column] == "byte")
         {
-            return (byte)data[column, row];
+            return byte.Parse(data[column, row].ToString());
         }
         throw ErrorTip(row, column);
     }

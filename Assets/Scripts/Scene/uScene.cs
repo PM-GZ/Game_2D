@@ -32,9 +32,12 @@ public class uScene : BaseObject
         }
     }
 
+    public Scene curScene { get; private set; }
     private SceneParams _SceneParams;
     private AsyncOperationHandle<SceneInstance> _SceneAsync;
     private IEnumerator _SceneCoroutine;
+
+    public event Action onSwitchScene;
 
     public override void Init()
     {
@@ -55,12 +58,15 @@ public class uScene : BaseObject
         var fade = Main.Ui.CreatePanel<PanelFade>();
         fade.StartFade();
 
+        onSwitchScene?.Invoke();
+
         _SceneParams.onLoadStart?.Invoke();
         _SceneAsync = uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
         while (!_SceneAsync.IsDone)
         {
             yield return null;
         }
+        curScene = _SceneAsync.Result.Scene;
         fade.EndFade();
         _SceneParams.onLoadEnd?.Invoke();
         _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
@@ -83,6 +89,7 @@ public class uScene : BaseObject
     private IEnumerator ExcuteSwitchScene()
     {
         _SceneParams.onLoadStart?.Invoke();
+        onSwitchScene?.Invoke();
 
         var loading = Main.Ui.CreatePanel<PanelLoading>();
         _SceneAsync = uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
@@ -91,6 +98,7 @@ public class uScene : BaseObject
             loading.SetProgrssValue(_SceneAsync.PercentComplete);
             yield return null;
         }
+        curScene = _SceneAsync.Result.Scene;
         _SceneParams.onLoadEnd?.Invoke();
         _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
 

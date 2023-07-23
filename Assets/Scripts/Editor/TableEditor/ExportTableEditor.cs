@@ -115,7 +115,7 @@ public class ExportTableEditor
         filePath = filePath.Replace('\\', '/');
         filePath = filePath.Replace(Application.dataPath, "Assets");
         _ClassSBuilder.Append($"public readonly string filePath = \"{filePath}\";");
-        _ClassSBuilder.Append($"\n\tpublic readonly sheetName = \"{sheetName}\";");
+        _ClassSBuilder.Append($"\n\tpublic readonly string sheetName = \"{sheetName}\";");
         _ClassSBuilder.Append("\n\t");
         _ClassSBuilder.Append($"public Dictionary<uint, Data> dataDict;\n\n");
     }
@@ -164,6 +164,16 @@ public class ExportTableEditor
 
             int subIndex = type.StartsWith('u') ? 2 : 1;
             string func = type[..subIndex].ToUpper() + type[subIndex..];
+
+            if (func.EndsWith("[][]"))
+            {
+                func = func.Replace("[][]", "Array2");
+            }
+            else if (func.EndsWith("[]"))
+            {
+                func = func.Replace("[]", "Array");
+            }
+
             _ClassSBuilder.Append($"data.{field} = rawTable.Get{func}(i, {j - 1});\n\t\t\t");
         }
         _ClassSBuilder.Append($"dataDict.Add(data.{key}, data);");

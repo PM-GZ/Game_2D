@@ -2,23 +2,24 @@ using System;
 using System.Collections.Generic;
 
 
-public class TableRole : TableData
+public class TableFruit : TableData
 {
-	public readonly string filePath = "Assets/EditorAssets/Table/角色表.xlsx";
-	public readonly string sheetName = "角色初始";
+	public readonly string filePath = "Assets/EditorAssets/Table/物品表.xlsx";
+	public readonly string sheetName = "果实表";
 	public Dictionary<uint, Data> dataDict;
 
 
 	public struct Data
 	{
 		public uint ID;
-		public string RoleName;
+		public string FruitName;
 		public string PrefabName;
-		public string PortraitPath;
-		public ushort Star;
+		public string IconPath;
+		public ushort ShelfLife;
+		public uint PutrilageID;
 	}
 
-	public TableRole()
+	public TableFruit()
 	{
 		if(rawTable == null)
 		{
@@ -35,10 +36,11 @@ public class TableRole : TableData
 		{
 			Data data = new();
 			data.ID = rawTable.GetUInt(i, 0);
-			data.RoleName = rawTable.GetString(i, 1);
+			data.FruitName = rawTable.GetString(i, 1);
 			data.PrefabName = rawTable.GetString(i, 2);
-			data.PortraitPath = rawTable.GetString(i, 3);
-			data.Star = rawTable.GetUShort(i, 4);
+			data.IconPath = rawTable.GetString(i, 3);
+			data.ShelfLife = rawTable.GetUShort(i, 4);
+			data.PutrilageID = rawTable.GetUInt(i, 5);
 			dataDict.Add(data.ID, data);
 		}
 		rawTable = null;
