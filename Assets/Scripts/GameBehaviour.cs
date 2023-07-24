@@ -11,6 +11,13 @@ public class GameBehaviour : BaseObject
 
 
     public GameObject gameObject { get; protected set; }
+    public Transform transform { get => gameObject.transform; }
+
+    public GameBehaviour()
+    {
+        OnStart();
+        behaviours.Add(this);
+    }
 
     public static void FixedUpdate()
     {
@@ -42,6 +49,7 @@ public class GameBehaviour : BaseObject
 
     public void Destroy()
     {
+        StopAllCoroutine();
         behaviours.Remove(this);
         OnDestroy();
     }

@@ -1,1 +1,1 @@
-{"playerData":{"playerName":null,"playerLevel":0,"roleID":0,"sceneIndex":0,"playerPos":{"x":0.0,"y":0.0,"z":0.0}},"packageData":{"goodsDict":null},"sceneData":{"sceneIndex":0,"sceneName":null},"taskData":{}}
+{"playerData":{"roleData":{"ID":1,"RoleName":"Cat","PrefabName":"Cat","PortraitPath":null,"Star":0},"playerName":"","playerLevel":0,"roleID":0,"playerPos":{"x":-4.47253466,"y":-1.24010932,"z":0.0}},"packageData":{"goodsDict":{"1":15}},"sceneData":null,"taskData":null}

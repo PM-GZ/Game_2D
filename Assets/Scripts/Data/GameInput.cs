@@ -6,10 +6,22 @@ public sealed class GameInput
 {
     public enum InputKey : byte
     {
+        /// <summary>
+        /// Key WSAD/¡ü¡ý¡û¡ú
+        /// </summary>
         Game_Move,
+        /// <summary>
+        /// Mouse Right
+        /// </summary>
         Game_Fight,
+        /// <summary>
+        /// Key E
+        /// </summary>
         Game_Interaction,
 
+        /// <summary>
+        /// Key Esc
+        /// </summary>
         Ui_Esc
     }
 
