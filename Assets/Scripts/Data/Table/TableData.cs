@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using UnityEngine;
 
 public static class TABLE
 {
@@ -44,7 +43,7 @@ public class RawTable
         data = null;
 
         using ExcelWorksheet sheet = TableUtility.GetTable(tableName, sheetName);
-        if(sheet == null)
+        if (sheet == null)
         {
             throw new Exception($"Error sheet {sheetName} int the table£º{tableName} is null");
         }
@@ -62,87 +61,51 @@ public class RawTable
 
             if (type == "string")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<string>(rowNum, i, sheet);
             }
             else if (type == "byte")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<byte>(rowNum, i, sheet);
             }
             else if (type == "sbyte")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<sbyte>(rowNum, i, sheet);
             }
             else if (type == "short")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<short>(rowNum, i, sheet);
             }
             else if (type == "ushort")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<ushort>(rowNum, i, sheet);
             }
             else if (type == "int")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<int>(rowNum, i, sheet);
             }
             else if (type == "uint")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<uint>(rowNum, i, sheet);
             }
             else if (type == "long")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<long>(rowNum, i, sheet);
             }
             else if (type == "ulong")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<ulong>(rowNum, i, sheet);
             }
             else if (type == "float")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<float>(rowNum, i, sheet);
             }
             else if (type == "double")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<double>(rowNum, i, sheet);
             }
             else if (type == "bool")
             {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
+                GetValue<bool>(rowNum, i, sheet);
             }
             else if (type == "enum" || type.StartsWith("enum:"))
             {
@@ -611,6 +574,14 @@ public class RawTable
         br.Close();
     }
 
+    private void GetValue<T>(int rowNum, int i, ExcelWorksheet sheet)
+    {
+        for (int j = 4; j <= rowNum; j++)
+        {
+            data[i - 1, j - 4] = sheet.GetValue<T>(j, i);
+        }
+    }
+
     #region GetValue Func
     private Exception ErrorTip(int row, int column)
     {
@@ -632,7 +603,7 @@ public class RawTable
         if (!CheckRowCol(row, column)) return 0;
         if (colType[column] == "byte")
         {
-            return byte.Parse(data[column, row].ToString());
+            return (byte)data[column, row];
         }
         throw ErrorTip(row, column);
     }
