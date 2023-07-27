@@ -9,6 +9,7 @@ public class TableFruit : TableData
 	public Dictionary<uint, Data> dataDict;
 
 
+	[Serializable]
 	public struct Data
 	{
 		public uint ID;

@@ -91,6 +91,9 @@ public class PlayerCollider : MonoBehaviour
         Collider2D obj = Main.Data.Player.nearObj;
         PlantBase plant = obj.GetComponent<PlantBase>();
         plant.PickFruit();
+
+        var plantData = plant.plantData;
+        Main.Data.Player.SetPackageData(plantData.FruitID, plantData.FruitNum);
     }
     #endregion
 }

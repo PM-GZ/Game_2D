@@ -1,6 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
+using RandomGoodType = TreasureChestBase.RandomGoodType;
+using RandomGoodData = TreasureChestBase.RandomGoodData;
+using System.Linq;
 
 public class uMapData : DataBase
 {
@@ -26,10 +30,15 @@ public class uMapData : DataBase
 
     private const string MAP_DATA_NAME = "MapData";
     public Dictionary<string, MapData> mapDataDict { get; private set; }
+    private GameObject[] _mapGOs;
+    private List<int> idIndexs = new();
+
 
     #region override
     public override void InitData()
     {
+        InitMapGoodsData();
+        InitRandomGoods();
         ReadMapData();
     }
 
@@ -46,6 +55,98 @@ public class uMapData : DataBase
     public override void ClearEvent()
     {
         Main.Scene.onSwitchScene -= OnSwitchScene;
+    }
+    #endregion
+
+    #region Init
+    private void InitMapGoodsData()
+    {
+        var scene = Main.Scene.curScene;
+        _mapGOs = scene.GetRootGameObjects();
+    }
+
+    private void InitRandomGoods()
+    {
+        var randomGoodsDict = TABLE.Get<TableRandomGood>().dataDict;
+        foreach (var go in _mapGOs)
+        {
+            var refreshs = go.GetComponentsInChildren<IGoodRefresh>();
+            foreach (var refresh in refreshs)
+            {
+                var randomGoodData = randomGoodsDict[refresh.randomGoodID];
+                SetRandomGoodData(randomGoodData, refresh);
+            }
+        }
+    }
+
+    private void SetRandomGoodData(TableRandomGood.Data randomGoodData, IGoodRefresh refresh)
+    {
+        var type = randomGoodData.randomType;
+
+        RandomGoodData data = new()
+        {
+            type = (RandomGoodType)type,
+            nums = GetRandomNum(randomGoodData.goodsNum),
+            time = (uint)Random.Range(randomGoodData.randomTime[0], randomGoodData.randomTime[1]),
+        };
+
+        switch ((RandomGoodType)type)
+        {
+            case RandomGoodType.FixedGood:
+                data.ids = randomGoodData.goodsID;
+                data.nums = randomGoodData.goodsNum[0];
+                break;
+            case RandomGoodType.RandomGood:
+                data.ids = GetRandomId(randomGoodData.goodsID);
+                break;
+            case RandomGoodType.FixedTime:
+                data.time = randomGoodData.randomTime[0];
+                break;
+        }
+
+        data.posArray = GetVecterData(randomGoodData.goodsPos);
+        data.rotArray = GetVecterData(randomGoodData.goodsRot);
+        data.sizeArray = GetVecterData(randomGoodData.goodsSize);
+        refresh.randomGoodData = data;
+    }
+
+    private uint[] GetRandomId(uint[] array)
+    {
+        idIndexs.Clear();
+
+        uint[] idArray = new uint[Random.Range(0, array.Length)];
+        for (int i = 0; i < idArray.Length; i++)
+        {
+            int index = Random.Range(0, array.Length);
+            if (!idArray.Contains(array[index]))
+            {
+                idArray[i] = array[index];
+                idIndexs.Add(index);
+            }
+        }
+        return idArray;
+    }
+
+    private uint[] GetRandomNum(uint[][] array)
+    {
+        uint[] idArray = new uint[Random.Range(0, array.Length)];
+        for (int i = 0; i < array.Length; i++)
+        {
+            idArray[i] = (uint)Random.Range(array[i][0], array[i][1]);
+        }
+        return idArray;
+    }
+
+    private float[][] GetVecterData(float[][] goodsPos)
+    {
+        float[][] vectors = new float[idIndexs.Count][];
+        for (int i = 0; i < idIndexs.Count; i++)
+        {
+            vectors[i][0] = goodsPos[i][0];
+            vectors[i][1] = goodsPos[i][1];
+            vectors[i][2] = goodsPos[i][2];
+        }
+        return vectors;
     }
     #endregion
 

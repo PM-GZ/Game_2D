@@ -122,6 +122,7 @@ public class ExportTableEditor
 
     private static void AddStructData(ExcelWorksheet sheet)
     {
+        _ClassSBuilder.Append("\n\t[Serializable]");
         _ClassSBuilder.Append("\n\tpublic struct Data\n\t{");
         for (int j = 1; j <= sheet.Dimension.Columns; j++)
         {
