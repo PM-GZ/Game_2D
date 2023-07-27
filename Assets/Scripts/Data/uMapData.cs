@@ -31,14 +31,13 @@ public class uMapData : DataBase
     private const string MAP_DATA_NAME = "MapData";
     public Dictionary<string, MapData> mapDataDict { get; private set; }
     private GameObject[] _mapGOs;
+    private Dictionary<IGoodRefresh, RandomGoodData> _randomGoodDataDict = new();
     private List<int> idIndexs = new();
 
 
     #region override
     public override void InitData()
     {
-        InitMapGoodsData();
-        InitRandomGoods();
         ReadMapData();
     }
 
@@ -59,13 +58,13 @@ public class uMapData : DataBase
     #endregion
 
     #region Init
-    private void InitMapGoodsData()
+    public void InitMapGoodsData()
     {
         var scene = Main.Scene.curScene;
         _mapGOs = scene.GetRootGameObjects();
     }
 
-    private void InitRandomGoods()
+    public void InitRandomGoods()
     {
         var randomGoodsDict = TABLE.Get<TableRandomGood>().dataDict;
         foreach (var go in _mapGOs)
@@ -107,7 +106,7 @@ public class uMapData : DataBase
         data.posArray = GetVecterData(randomGoodData.goodsPos);
         data.rotArray = GetVecterData(randomGoodData.goodsRot);
         data.sizeArray = GetVecterData(randomGoodData.goodsSize);
-        refresh.randomGoodData = data;
+        _randomGoodDataDict.Add(refresh, data);
     }
 
     private uint[] GetRandomId(uint[] array)
@@ -156,6 +155,11 @@ public class uMapData : DataBase
         UpdateMapData(Main.Scene.curScene);
     }
     #endregion
+
+    public bool TryGetRandomGoodData(IGoodRefresh refresh, out RandomGoodData goodData)
+    {
+        return _randomGoodDataDict.TryGetValue(refresh, out goodData);
+    }
 
     private void UpdateMapData(Scene scene)
     {

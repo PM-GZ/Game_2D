@@ -5,7 +5,8 @@ using UnityEngine;
 public interface IGoodRefresh
 {
     bool fixedRefresh { get ;}
+    bool entity { get; }
     uint randomGoodID { get; }
 
-    TreasureChestBase.RandomGoodData randomGoodData { get; set; }
+    TreasureChestBase.RandomGoodData randomGoodData { get; }
 }

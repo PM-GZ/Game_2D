@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
@@ -42,6 +43,7 @@ public class uScene : BaseObject
     public override void Init()
     {
     }
+
 
     public void FadeScene(SceneParams param)
     {
@@ -92,13 +94,17 @@ public class uScene : BaseObject
         onSwitchScene?.Invoke();
 
         var loading = Main.Ui.CreatePanel<PanelLoading>();
-        _SceneAsync = uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
-        while (!_SceneAsync.IsDone)
-        {
-            loading.SetProgrssValue(_SceneAsync.PercentComplete);
-            yield return null;
-        }
+        yield return uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
         curScene = _SceneAsync.Result.Scene;
+
+        loading.SetProgrssValue(0.1f);
+        Main.Data.Map.InitMapGoodsData();
+
+        loading.SetProgrssValue(0.2f);
+        Main.Data.Map.InitRandomGoods();
+
+        loading.SetProgrssValue(1f);
+
         _SceneParams.onLoadEnd?.Invoke();
         _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
 

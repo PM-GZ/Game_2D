@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 植物类 基类
 /// </summary>
-public class PlantBase : MonoBehaviour
+public class PlantBase : GoodsBase
 {
     public bool initFriut;
 
@@ -43,8 +43,9 @@ public class PlantBase : MonoBehaviour
 
 
     #region Unity Func
-    public virtual void Start()
+    public override void Start()
     {
+        base.Start();
         plantData = TABLE.Get<TablePlant>().dataDict[plantID];
 
         if (plantData.IsFruit)
@@ -55,25 +56,24 @@ public class PlantBase : MonoBehaviour
         }
     }
 
-    public virtual void OnEnable()
+    public override void OnEnable()
     {
+        base.OnEnable();
         if (plantData.IsFruit)
         {
             Invoke(nameof(GrowFruit), plantData.TotalTime);
         }
     }
 
-    public virtual void OnDisable()
+    public override void OnDisable()
     {
-        StopAllCoroutines();
-        CancelInvoke();
+        base.OnDisable();
         onRipeEvent = null;
     }
 
-    public virtual void OnDestroy()
+    public override void OnDestroy()
     {
-        StopAllCoroutines();
-        CancelInvoke();
+        base.OnDestroy();
         onRipeEvent = null;
     }
     #endregion
