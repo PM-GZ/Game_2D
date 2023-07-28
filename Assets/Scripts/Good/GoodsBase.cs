@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GoodsBase : MonoBehaviour
 {
+    public bool nothingGoods { get; protected set; }
 
     #region Unity Func
     public virtual void Start()

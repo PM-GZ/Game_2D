@@ -25,7 +25,7 @@ public class uUi : BaseObject
     private Transform mFixed;
     private Transform mDialog;
     private Transform mTop;
-    private Camera mUiCamera;
+    public Camera uiCamera { get; private set; }
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
@@ -38,7 +38,7 @@ public class uUi : BaseObject
     {
         mCanvas = GameObject.Find("Canvas").GetComponent<Canvas>();
 
-        mUiCamera = mCanvas.transform.Find("UiCamera").GetComponent<Camera>();
+        uiCamera = mCanvas.transform.Find("UiCamera").GetComponent<Camera>();
         mBackground = mCanvas.transform.Find("Backgorund");
         mNormal = mCanvas.transform.Find("Normal");
         mFixed = mCanvas.transform.Find("Fixed");
@@ -72,12 +72,13 @@ public class uUi : BaseObject
     }
     #endregion
 
-    public T CreatePanel<T>() where T : PanelBase
+    public T CreatePanel<T>(object param = null) where T : PanelBase
     {
         PanelBase panel = GetForeverPanel<T>();
         if (panel == null)
         {
             panel = Activator.CreateInstance<T>();
+            panel.param = param;
             panel.InitPanel();
             SetForeverPanel(panel);
         }
@@ -91,7 +92,7 @@ public class uUi : BaseObject
     #region Get Func
     public Vector3 GetScreenPostion(Vector3 worldPostion)
     {
-        return mUiCamera.WorldToScreenPoint(worldPostion);
+        return uiCamera.WorldToScreenPoint(worldPostion);
     }
 
     public T GetPanel<T>() where T : PanelBase

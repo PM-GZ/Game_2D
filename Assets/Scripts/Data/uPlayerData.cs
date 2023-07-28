@@ -68,6 +68,12 @@ public class uPlayerData : DataBase
                 nearObjTag = tag;
             }
         }
+
+        if (nearObj.TryGetComponent<GoodsBase>(out var good))
+        {
+            if(good.nothingGoods)
+                nearObj = null;
+        }
     }
 
     public int GetGoodsNum(uint id)

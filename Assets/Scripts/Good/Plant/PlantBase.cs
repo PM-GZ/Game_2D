@@ -36,7 +36,6 @@ public class PlantBase : GoodsBase
     /// <summary>
     ///  «∑Ò≥… Ï
     /// </summary>
-    public bool isRipe { get; private set; }
 
     public event Action onRipeEvent;
 
@@ -83,7 +82,7 @@ public class PlantBase : GoodsBase
     {
         if (!plantData.IsFruit) return;
 
-        isRipe = initFriut;
+        nothingGoods = initFriut;
 
         for (int i = 0; i < plantData.FruitNum; i++)
         {
@@ -112,21 +111,21 @@ public class PlantBase : GoodsBase
     {
         if (!plantData.IsFruit)
         {
-            isRipe = false;
+            nothingGoods = false;
             return;
         }
-        if (isRipe) return;
+        if (nothingGoods) return;
 
-        isRipe = true;
+        nothingGoods = true;
         GeneratorFruits();
         onRipeEvent?.Invoke();
     }
 
     public void PickFruit()
     {
-        if (!isRipe) return;
+        if (!nothingGoods) return;
 
-        isRipe = false;
+        nothingGoods = false;
 
         DistoryFruits();
         Invoke(nameof(GrowFruit), plantData.TotalTime);

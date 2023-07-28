@@ -11,6 +11,9 @@ public class PanelBase : BaseObject
     public CanvasGroup canvasGroup { get; private set; }
     public bool forever { get; private set; }
 
+    public object param;
+
+
     public void InitPanel()
     {
         LoadPanel();

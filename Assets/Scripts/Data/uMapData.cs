@@ -85,8 +85,8 @@ public class uMapData : DataBase
         RandomGoodData data = new()
         {
             type = (RandomGoodType)type,
-            nums = GetRandomNum(randomGoodData.goodsNum),
-            time = (uint)Random.Range(randomGoodData.randomTime[0], randomGoodData.randomTime[1]),
+            ids = randomGoodData.goodsID,
+            time = randomGoodData.randomTime,
         };
 
         switch ((RandomGoodType)type)
@@ -97,9 +97,10 @@ public class uMapData : DataBase
                 break;
             case RandomGoodType.RandomGood:
                 data.ids = GetRandomId(randomGoodData.goodsID);
+                data.nums = GetRandomNum(randomGoodData.goodsNum);
                 break;
             case RandomGoodType.FixedTime:
-                data.time = randomGoodData.randomTime[0];
+                data.nums = GetRandomNum(randomGoodData.goodsNum);
                 break;
         }
 
@@ -128,10 +129,11 @@ public class uMapData : DataBase
 
     private uint[] GetRandomNum(uint[][] array)
     {
-        uint[] idArray = new uint[Random.Range(0, array.Length)];
+        uint[] idArray = new uint[idIndexs.Count];
         for (int i = 0; i < array.Length; i++)
         {
-            idArray[i] = (uint)Random.Range(array[i][0], array[i][1]);
+            int index = idIndexs[i];
+            idArray[i] = (uint)Random.Range(array[index][0], array[index][1]);
         }
         return idArray;
     }

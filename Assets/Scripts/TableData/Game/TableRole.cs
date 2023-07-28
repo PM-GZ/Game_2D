@@ -17,6 +17,7 @@ public class TableRole : TableData
 		public string PrefabName;
 		public string PortraitPath;
 		public ushort Star;
+		public ushort Speed;
 	}
 
 	public TableRole()
@@ -40,6 +41,7 @@ public class TableRole : TableData
 			data.PrefabName = rawTable.GetString(i, 2);
 			data.PortraitPath = rawTable.GetString(i, 3);
 			data.Star = rawTable.GetUShort(i, 4);
+			data.Speed = rawTable.GetUShort(i, 5);
 			dataDict.Add(data.ID, data);
 		}
 		rawTable = null;

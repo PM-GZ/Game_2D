@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerCollider : MonoBehaviour
 {
+    private Collider2D[] _collider2Ds = new Collider2D[10];
     private bool _autoInteraction;
     private Coroutine _coroutine;
 
@@ -45,14 +46,21 @@ public class PlayerCollider : MonoBehaviour
             return;
         }
         if (!context.performed) return;
+
+        DetectRoundObj();
         if (Main.Data.Player.nearObj == null) return;
 
-        _autoInteraction = true;
         if (_coroutine != null)
         {
             StopCoroutine(_coroutine);
         }
         DoBehaviour();
+    }
+
+    private void DetectRoundObj()
+    {
+        Physics2D.OverlapCircleNonAlloc(transform.root.position, 6, _collider2Ds);
+        Main.Data.Player.SetRoundObj(_collider2Ds);
     }
 
     private void DoBehaviour()
@@ -69,14 +77,16 @@ public class PlayerCollider : MonoBehaviour
 
     private IEnumerator MoveToObj(Action behaviour)
     {
+        _autoInteraction = true;
         Transform role = transform.root;
         Collider2D target = Main.Data.Player.nearObj;
         float dis = Vector3.Distance(role.position, target.transform.position);
+        ushort speed = Main.Data.Player.player.roleData.Speed;
         while (dis > 0.5f)
         {
             if (!_autoInteraction) yield break;
 
-            float moveSpeed = 3 * Time.fixedDeltaTime;
+            float moveSpeed = speed * Time.fixedDeltaTime;
             role.transform.position = Vector3.MoveTowards(role.transform.position, target.transform.position, moveSpeed);
             dis = Vector3.Distance(role.position, target.transform.position);
             yield return new WaitForFixedUpdate();

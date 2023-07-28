@@ -7,29 +7,13 @@ using UnityEngine.UI;
 
 
 [RequireComponent(typeof(ScrollRect))]
-public class UiCycleScroll : UiLayoutBase
+public class UiCycleScroll : BaseUiBasic
 {
     [SerializeField] private ScrollRect _Scroll;
+    [SerializeField] private GridLayoutGroup _gridLayout;
     public RectTransform content { get => _Scroll.content; }
     public RectTransform viewport { get => _Scroll.viewport; }
 
-    public Vector2 childSize = new Vector2(100, 100);
-    public Vector2 spacing;
-    public GridLayoutGroup.Axis axis;
-
-    private Vector2 _childFullSize
-    {
-        get
-        {
-            Vector2 size;
-            size.x = childSize.x + padding.left + spacing.x;
-            size.y = childSize.y + padding.top + spacing.y;
-            return size;
-        }
-    }
-
-    public int row;
-    public int column;
     private int _dataCount;
     private int _childCount;
     public List<UiItemBase> items { get; private set; } = new();
@@ -54,57 +38,30 @@ public class UiCycleScroll : UiLayoutBase
         _onSelect = onSelect;
         _onCreateAll = onCreateAll;
 
-        _Scroll.horizontal = axis == GridLayoutGroup.Axis.Horizontal;
-        _Scroll.vertical = axis == GridLayoutGroup.Axis.Vertical;
-
-        SetMaxItemCount();
-        SetContent();
+        GetChildCount();
         CreateItem<T>();
         _lastDelta = content.anchoredPosition;
         _Scroll.onValueChanged.AddListener(OnScrollValueChanged);
     }
 
-    private void SetMaxItemCount()
+    private void GetChildCount()
     {
-        var hor = axis == GridLayoutGroup.Axis.Horizontal;
-        if (hor)
+        if(_gridLayout.constraint == GridLayoutGroup.Constraint.FixedRowCount)
         {
-            column = Mathf.CeilToInt(_dataCount / row);
+            float count = _Scroll.content.sizeDelta.x / (_gridLayout.cellSize.x + _gridLayout.spacing.x) - _gridLayout.padding.left;
+            _dataCount = Mathf.CeilToInt(count) * _gridLayout.constraintCount;
+            _dataCount += _gridLayout.constraintCount * 4;
+        }
+        else if(_gridLayout.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
+        {
+            float count = _Scroll.content.sizeDelta.y / (_gridLayout.cellSize.y + _gridLayout.spacing.y) - _gridLayout.padding.top;
+            _dataCount = Mathf.CeilToInt(count) * _gridLayout.constraintCount;
+            _dataCount += _gridLayout.constraintCount * 4;
         }
         else
         {
-            row = Mathf.CeilToInt(_dataCount / column);
+            _dataCount = 30;
         }
-
-        int xCount = Mathf.CeilToInt(viewport.rect.size.x / _childFullSize.x);
-        int yCount = Mathf.CeilToInt(viewport.rect.size.y / _childFullSize.y);
-        _childCount = hor ? row * xCount : column * yCount;
-        _childCount += hor ? row : column;
-        _maxContent = hor ? column : row;
-    }
-
-    private void SetContent()
-    {
-        Vector2 size = viewport.rect.size;
-        if (axis == GridLayoutGroup.Axis.Horizontal)
-        {
-            SetContentRect(Vector2.zero, Vector2.up);
-            size.x = (childSize.x * column) + (spacing.x * (column - 1)) + padding.left;
-        }
-        else
-        {
-            SetContentRect(Vector2.up, Vector2.one);
-            size.y = (childSize.y * row) + (spacing.y * (row - 1)) + padding.top;
-        }
-        content.anchoredPosition = Vector2.zero;
-        content.sizeDelta = size;
-    }
-
-    private void SetContentRect(Vector2 anchorMin, Vector2 anchorMax)
-    {
-        content.pivot = Vector2.up;
-        content.anchorMin = anchorMin;
-        content.anchorMax = anchorMax;
     }
 
     private void CreateItem<T>() where T : UiItemBase
@@ -113,8 +70,6 @@ public class UiCycleScroll : UiLayoutBase
         {
             var item = UiUtility.CreateItem<T>(content);
             item.index = i;
-            SetItemRect(item);
-            SetItemPos(item, i);
 
             items.Add(item);
         }
@@ -122,48 +77,18 @@ public class UiCycleScroll : UiLayoutBase
         _maxIndex = items.Count - 1;
     }
 
-    private void SetItemRect(UiItemBase item)
-    {
-        var rect = item.rectTransform;
-        rect.anchorMin = rect.anchorMax = Vector2.up;
-        rect.sizeDelta = childSize;
-    }
-
-    private void SetItemPos(UiItemBase item, int index)
-    {
-        var rect = item.rectTransform;
-        rect.anchoredPosition = GetItemPos(index);
-        item.pos = rect.anchoredPosition;
-    }
-
-    private Vector2 GetItemPos(int index)
-    {
-        Vector2 pos = childSize / 2;
-        if (axis == GridLayoutGroup.Axis.Horizontal)
-        {
-            pos.x += (childSize.x + spacing.x) * (index / row) + padding.left;
-            pos.y = -pos.y - ((childSize.y + spacing.y) * (index % row) + padding.top);
-        }
-        else
-        {
-            pos.x += (childSize.x + spacing.x) * (index % column) + padding.left;
-            pos.y = -pos.y - ((childSize.y + spacing.y) * (index / column) + padding.top);
-        }
-        return pos;
-    }
-
     private void OnScrollValueChanged(Vector2 delta)
     {
         if (items.Count == 0) return;
         delta = content.anchoredPosition - _lastDelta;
-        if (axis == GridLayoutGroup.Axis.Horizontal)
+        if (_gridLayout.startAxis == GridLayoutGroup.Axis.Horizontal)
         {
-            if (delta.x == 0 || Mathf.Abs(delta.x) <= spacing.x) return;
+            if (delta.x == 0 || Mathf.Abs(delta.x) <= _gridLayout.spacing.x) return;
             HorizontalMove(delta.x);
         }
         else
         {
-            if (delta.y == 0 || Mathf.Abs(delta.y) <= spacing.y) return;
+            if (delta.y == 0 || Mathf.Abs(delta.y) <= _gridLayout.spacing.y) return;
             VerticalMove(delta.y);
         }
         _lastDelta = content.anchoredPosition;
@@ -181,37 +106,21 @@ public class UiCycleScroll : UiLayoutBase
         }
     }
 
-    private void SetItemLastSibling(UiItemBase item)
+    private void VerticalMove(float y)
     {
-        item.rectTransform.anchoredPosition = GetItemPos(_maxIndex);
-        item.transform.SetAsLastSibling();
-        _onPosChanged?.Invoke(item, _maxIndex);
-    }
-    private void SetItemFirstSibling(UiItemBase item)
-    {
-        item.rectTransform.anchoredPosition = GetItemPos(_minIndex);
-        item.transform.SetAsFirstSibling();
-        _onPosChanged?.Invoke(item, _minIndex);
+
     }
 
     private void MoveToRight()
     {
         if (content.offsetMin.x >= 0) return;
-        for (int i = 0; i < row; i++)
+        for (int i = 0; i < _gridLayout.constraintCount; i++)
         {
-            if (_maxIndex + 1 >= _dataCount) return;
-            var item = GetItem<UiItemBase>(0);
-            var itemPos = item.transform.position;
-            var viewportPos = viewport.position;
-            if (Main.Ui.RenderMode != RenderMode.ScreenSpaceOverlay)
+            var item = items[0];
+            var rect = item.transform as RectTransform;
+            float x = rect.anchoredPosition.x - rect.sizeDelta.x / 2;
+            if (x <= 0)
             {
-                itemPos = Main.Ui.GetScreenPostion(item.transform.position);
-                viewportPos = Main.Ui.GetScreenPostion(viewport.transform.position);
-            }
-            if (itemPos.x - viewportPos.x > childSize.x + padding.left * 2)
-            {
-                ++_maxIndex;
-                ++_minIndex;
                 SetItemLastSibling(item);
             }
         }
@@ -220,45 +129,26 @@ public class UiCycleScroll : UiLayoutBase
     private void MoveToLeft()
     {
         if (content.offsetMax.x <= viewport.rect.size.x) return;
-        for (int i = 0; i < row; i++)
+        for (int i = 0; i < _gridLayout.constraintCount; i++)
         {
-            if (_minIndex - 1 < 0) return;
-            var item = GetItem<UiItemBase>(0);
-            var itemPos = item.transform.position;
-            var viewportPos = viewport.position;
-            if (Main.Ui.RenderMode != RenderMode.ScreenSpaceOverlay)
-            {
-                itemPos = Main.Ui.GetScreenPostion(item.transform.position);
-                viewportPos = Main.Ui.GetScreenPostion(viewport.transform.position);
-            }
-            if (itemPos.x - viewportPos.x < childSize.x + padding.left * 2)
-            {
-                item = GetItem<UiItemBase>(_childCount - 1);
-                --_maxIndex;
-                --_minIndex;
-                SetItemFirstSibling(item);
-            }
+            var item = items[0];
         }
     }
 
-    private void VerticalMove(float y)
+    private void SetItemLastSibling(UiItemBase item)
     {
-
+        item.transform.SetAsLastSibling();
+        _onPosChanged?.Invoke(item, _maxIndex);
+    }
+    private void SetItemFirstSibling(UiItemBase item)
+    {
+        item.transform.SetAsFirstSibling();
+        _onPosChanged?.Invoke(item, _minIndex);
     }
 
     public T GetItem<T>(int index) where T : Component
     {
         if (items.Count == 0) return default;
         return content.GetChild(index % _childCount).GetComponent<T>();
-    }
-
-    public override void SetLayoutHorizontal()
-    {
-
-    }
-
-    public override void SetLayoutVertical()
-    {
-
     }
 }

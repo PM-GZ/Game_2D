@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public static class UiUtility
 {
     public static T CreateItem<T>(Transform parent = null) where T : UiItemBase
@@ -21,5 +22,14 @@ public static class UiUtility
             list.Add(item);
         }
         return list;
+    }
+
+    public static Vector2 GetWorldSpacePos(RectTransform ui, Vector3 target)
+    {
+        var root = ui.root as RectTransform;
+        Vector2 targetUiPos = Main.Ui.uiCamera.WorldToScreenPoint(target);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(root, targetUiPos, Main.Ui.uiCamera, out var pos);
+
+        return pos;
     }
 }

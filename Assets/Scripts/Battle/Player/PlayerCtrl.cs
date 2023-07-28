@@ -8,7 +8,6 @@ public class PlayerCtrl : GameBehaviour
 {
     public FSMControl fsmCtrl;
     private PlayerCollider _playerCollider;
-    private Collider2D[] _collider2Ds = new Collider2D[10];
 
     #region override
     public override void OnStart()
@@ -20,7 +19,6 @@ public class PlayerCtrl : GameBehaviour
     public override void OnUpdate()
     {
         fsmCtrl.Update();
-        DetectRoundObj();
     }
 
     public override void OnFixedUpdate()
@@ -52,10 +50,4 @@ public class PlayerCtrl : GameBehaviour
         fsmCtrl.SwitchState(FSMStateBase.FSMStateMode.Walk);
     }
     #endregion
-
-    private void DetectRoundObj()
-    {
-        Physics2D.OverlapCircleNonAlloc(transform.position, 6, _collider2Ds);
-        Main.Data.Player.SetRoundObj(_collider2Ds);
-    }
 }
