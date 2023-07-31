@@ -94,22 +94,26 @@ public class uScene : BaseObject
         onSwitchScene?.Invoke();
 
         var loading = Main.Ui.CreatePanel<PanelLoading>();
-        yield return uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
+        _SceneAsync = uAsset.LoadSceneAsync(_SceneParams.sceneName, _SceneParams.mode, _SceneParams.activeOnLoad);
+        while (!_SceneAsync.IsDone)
+        {
+            yield return null;
+        }
         curScene = _SceneAsync.Result.Scene;
 
-        loading.SetProgrssValue(0.1f);
-        Main.Data.Map.InitMapGoodsData();
+        //loading.SetProgrssValue(0.1f);
+        //Main.Data.Map.InitMapGoodsData();
 
-        loading.SetProgrssValue(0.2f);
-        Main.Data.Map.InitRandomGoods();
+        //loading.SetProgrssValue(0.2f);
+        //Main.Data.Map.InitRandomGoods();
 
         loading.SetProgrssValue(1f);
-
-        _SceneParams.onLoadEnd?.Invoke();
-        _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
 
         loading.Close();
         _SceneAsync = default;
         _SceneCoroutine = null;
+
+        _SceneParams.onLoadEnd?.Invoke();
+        _SceneParams.onComplete?.Invoke(_SceneAsync.Result);
     }
 }

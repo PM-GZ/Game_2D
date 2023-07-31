@@ -83,10 +83,10 @@ public class PlantBase : GoodsBase
         if (!plantData.IsFruit) return;
 
         nothingGoods = initFriut;
-
+        var fruitData = TABLE.Get<TableFruit>().dataDict[plantData.FruitID];
         for (int i = 0; i < plantData.FruitNum; i++)
         {
-            var fruit = uAsset.LoadGameObject(plantData.PrefabName);
+            var fruit = uAsset.LoadGameObject(fruitData.PrefabName);
             InitFruitGO(fruit, points[i]);
 
             fruits[i] = fruit;
@@ -116,7 +116,7 @@ public class PlantBase : GoodsBase
         }
         if (nothingGoods) return;
 
-        nothingGoods = true;
+        nothingGoods = false;
         GeneratorFruits();
         onRipeEvent?.Invoke();
     }

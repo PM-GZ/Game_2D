@@ -13,6 +13,7 @@ public class DialogSupplies : PanelBase
 
 
     [UiBind("Content")] private RectTransform _content;
+    [UiBind("AllPickup")] private UiButton _allPickup;
     [UiBind("Title")] private TMP_Text _title;
     [UiBind("GoodsList")] private ScrollRect _goodsList;
 
@@ -30,7 +31,7 @@ public class DialogSupplies : PanelBase
         if (param == null) return;
 
         Param data = (Param)param;
-        Vector2 pos = UiUtility.GetWorldSpacePos(_content, data.pos);
-        _content.anchoredPosition = pos;
+        Vector3 pos = UiUtility.GetWorldSpacePos(_content, data.pos);
+        (transform as RectTransform).anchoredPosition = pos;
     }
 }

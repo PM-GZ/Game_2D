@@ -104,6 +104,11 @@ public class PlayerCollider : MonoBehaviour
 
         var plantData = plant.plantData;
         Main.Data.Player.SetPackageData(plantData.FruitID, plantData.FruitNum);
+
+        Main.Ui.CreatePanel<DialogSupplies>(new DialogSupplies.Param
+        {
+            pos = obj.transform.position,
+        });
     }
     #endregion
 }

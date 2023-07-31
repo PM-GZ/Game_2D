@@ -26,10 +26,9 @@ public static class UiUtility
 
     public static Vector2 GetWorldSpacePos(RectTransform ui, Vector3 target)
     {
-        var root = ui.root as RectTransform;
-        Vector2 targetUiPos = Main.Ui.uiCamera.WorldToScreenPoint(target);
+        var root = ui.parent as RectTransform;
+        Vector3 targetUiPos = Camera.main.WorldToScreenPoint(target);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(root, targetUiPos, Main.Ui.uiCamera, out var pos);
-
         return pos;
     }
 }

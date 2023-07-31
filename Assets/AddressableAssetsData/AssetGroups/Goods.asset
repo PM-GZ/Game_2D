@@ -46,7 +46,7 @@ MonoBehaviour:
     - Prefab
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f8cd0b55c65caa8498dba03f3e045124
-    m_Address: Shrub
+    m_Address: shrub
     m_ReadOnly: 0
     m_SerializedLabels:
     - Prefab

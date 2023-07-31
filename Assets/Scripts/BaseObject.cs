@@ -4,8 +4,8 @@ using System.Collections.Generic;
 public class BaseObject
 {
     private static List<BaseObject> mBehaviourList = new();
-    private static List<IEnumerator> mCoroutineList = new();
-    private static Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
+    private List<IEnumerator> mCoroutineList = new();
+    private Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
 
     public BaseObject()
     {

@@ -53,6 +53,7 @@ public class PanelBase : BaseObject
         {
             var attribute = field.GetCustomAttribute(typeof(UiBindAttribute), false);
             var bind = attribute as UiBindAttribute;
+            if (bind == null) continue;
             uiBinds.Add(bind.name, field);
         }
 

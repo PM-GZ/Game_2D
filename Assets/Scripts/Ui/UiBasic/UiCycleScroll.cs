@@ -31,10 +31,6 @@ public class UiCycleScroll : BaseUiBasic
     private int _dataIndex;
     private int _dataIndex2;
 
-    private void Start()
-    {
-        InitItem<UiSuppliesListItem>(30);
-    }
 
     public void InitItem<T>(int dataCount, Action<UiItemBase, int> onCreate = null, Action<UiItemBase, int> onPosChanged = null, Action<UiItemBase, int> onRefresh = null, Action<UiItemBase, int> onSelect = null, Action onCreateAll = null) where T : UiItemBase
     {
@@ -71,8 +67,12 @@ public class UiCycleScroll : BaseUiBasic
         {
             _itemCount = 30;
         }
-        _itemCount = Mathf.Abs(_itemCount);
-        _itemCount += _gridLayout.constraintCount - (_itemCount % _gridLayout.constraintCount) + (_gridLayout.constraintCount * 2);
+        _itemCount += _gridLayout.constraintCount * 2;
+        int diffValue = _itemCount % _gridLayout.constraintCount;
+        if (diffValue != 0)
+        {
+            _itemCount += _gridLayout.constraintCount - diffValue;
+        }
     }
 
     private void CreateItem<T>() where T : UiItemBase
@@ -108,14 +108,14 @@ public class UiCycleScroll : BaseUiBasic
         {
             content.anchorMin = Vector2.zero;
             content.anchorMax = Vector2.up;
-            float x = count * (_gridLayout.cellSize.x + _gridLayout.spacing.x) + _gridLayout.padding.left;
+            float x = count * (_gridLayout.cellSize.x + _gridLayout.spacing.x) + _gridLayout.padding.left -_gridLayout.spacing.x;
             content.sizeDelta = new Vector2(x, viewport.rect.height);
         }
         else if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
         {
             content.anchorMin = Vector2.up;
             content.anchorMax = Vector2.one;
-            float y = count * (_gridLayout.cellSize.y + _gridLayout.spacing.y) + _gridLayout.padding.top;
+            float y = count * (_gridLayout.cellSize.y + _gridLayout.spacing.y) + _gridLayout.padding.top - _gridLayout.spacing.y;
             content.sizeDelta = new Vector2(viewport.rect.width, y);
         }
     }
@@ -167,7 +167,7 @@ public class UiCycleScroll : BaseUiBasic
 
         var item = GetItem<UiItemBase>(0);
         float x = Mathf.Abs(content.anchoredPosition.x);
-        if (x >= item.rectTransform.anchoredPosition.x + _halfSize.x)
+        if (x - _gridLayout.spacing.x >= item.rectTransform.anchoredPosition.x + _halfSize.x)
         {
             for (int i = 0; i < _gridLayout.constraintCount; i++)
             {
@@ -186,8 +186,9 @@ public class UiCycleScroll : BaseUiBasic
         if (content.offsetMin.x >= 0 || _dataIndex == 0) return;
 
         var item = GetItem<UiItemBase>(items.Count - 1);
-        float x = Mathf.Abs(content.rect.width - content.offsetMax.x + _halfSize.x);
-        if (content.offsetMin.x <= item.rectTransform.anchoredPosition.x - _halfSize.x)
+        float x = content.rect.width - viewport.rect.width + content.offsetMin.x;
+        float itemX = content.rect.width - item.rectTransform.anchoredPosition.x;
+        if (x - _halfSize.x >= itemX + _gridLayout.spacing.x)
         {
             for (int i = 0; i < _gridLayout.constraintCount; i++)
             {
@@ -207,7 +208,7 @@ public class UiCycleScroll : BaseUiBasic
 
         var item = GetItem<UiItemBase>(0);
         float y = Mathf.Abs(item.rectTransform.anchoredPosition.y) + _halfSize.y;
-        if (content.anchoredPosition.y >= y)
+        if (content.anchoredPosition.y - _gridLayout.spacing.x >= y)
         {
             for (int i = 0; i < _gridLayout.constraintCount; i++)
             {
@@ -226,8 +227,9 @@ public class UiCycleScroll : BaseUiBasic
         if (content.offsetMin.y >= 0 || _dataIndex == 0) return;
 
         var item = GetItem<UiItemBase>(items.Count - 1);
-        float y = content.offsetMin.y - content.offsetMax.y + _halfSize.y;
-        if (content.offsetMax.y <= -item.rectTransform.anchoredPosition.y / 2)
+        float y = content.rect.height - viewport.rect.height - content.offsetMax.y;
+        float itemY = content.rect.height + item.rectTransform.anchoredPosition.y;
+        if (y - _halfSize.y >= itemY + _gridLayout.spacing.y)
         {
             for (int i = 0; i < _gridLayout.constraintCount; i++)
             {
