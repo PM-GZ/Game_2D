@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 
 
-public class UiSuppliesListItem : BaseUiBasic
+public class UiSuppliesListItem : UiItemBase
 {
     [SerializeField] private UiButton _btn;
     [SerializeField] private Image _icon;

@@ -31,6 +31,13 @@ MonoBehaviour:
     - Prefab
     - Ui
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2038ad3333e17cb46bf7b69127b6310e
+    m_Address: UiSuppliesListItem
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Prefab
+    - Ui
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}
   m_SchemaSet:

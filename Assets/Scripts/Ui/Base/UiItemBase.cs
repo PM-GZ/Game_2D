@@ -1,9 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using System;
+using UnityEngine.EventSystems;
 
-public class UiItemBase : BaseUiBasic
+
+
+
+public class UiItemBase : BaseUiBasic, IPointerClickHandler
 {
-    public Vector2 pos;
-    public int index;
+    public Action<UiItemBase, int> onClick;
+    private int _index = -1;
+
+
+    public void Init(int index, Action<UiItemBase, int> onClick)
+    {
+        _index = index;
+        this.onClick = onClick;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        onClick?.Invoke(this, _index);
+    }
 }
