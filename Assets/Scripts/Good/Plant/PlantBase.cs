@@ -15,6 +15,9 @@ public class PlantBase : GoodsBase
     [SerializeField] TablePlant.Data _plantData;
     public TablePlant.Data plantData { get => _plantData; private set => _plantData = value; }
 
+    [SerializeField] TableFruit.Data _fruitData;
+    public TableFruit.Data fruitData { get => _fruitData; private set => _fruitData = value; }
+
     [SerializeField] private Transform[] _points;
     public Transform[] points { get => _points; protected set => _points = value; }
 
@@ -46,6 +49,7 @@ public class PlantBase : GoodsBase
     {
         base.Start();
         plantData = TABLE.Get<TablePlant>().dataDict[plantID];
+        fruitData = TABLE.Get<TableFruit>().dataDict[plantData.FruitID];
 
         if (plantData.IsFruit)
         {
@@ -83,7 +87,6 @@ public class PlantBase : GoodsBase
         if (!plantData.IsFruit) return;
 
         nothingGoods = initFriut;
-        var fruitData = TABLE.Get<TableFruit>().dataDict[plantData.FruitID];
         for (int i = 0; i < plantData.FruitNum; i++)
         {
             var fruit = uAsset.LoadGameObject(fruitData.PrefabName);
