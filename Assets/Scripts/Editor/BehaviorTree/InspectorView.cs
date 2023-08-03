@@ -27,7 +27,10 @@ public class InspectorView : VisualElement
 
         IMGUIContainer container = new IMGUIContainer(() =>
         {
-            _editor.OnInspectorGUI();
+            if (_editor.target)
+            {
+                _editor.OnInspectorGUI();
+            }
         });
         Add(container);
     }
