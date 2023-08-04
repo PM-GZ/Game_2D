@@ -25,9 +25,10 @@
             <ui:VisualElement style="flex-grow: 1; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; background-color: rgb(56, 56, 56);">
                 <ui:Label text="Create New Tree" display-tooltip-when-elided="true" style="-unity-text-align: upper-left; font-size: 25px; color: rgb(210, 210, 210); -unity-font-style: bold;" />
                 <ui:TextField picking-mode="Ignore" label="Name" value="New Behaviour Tree" text="New Behaviour Tree" name="TreeName" style="margin-top: 20px;" />
-                <ui:TextField picking-mode="Ignore" label="Location" value="Assets/" text="Assets/" name="LocationPath" readonly="false" style="margin-top: 10px;" />
+                <uie:ObjectField label="路径" name="LocationPath" />
                 <ui:VisualElement style="flex-grow: 1;" />
                 <ui:Button text="Create" display-tooltip-when-elided="true" name="CreateButton" style="min-height: 40px;" />
+                <ui:Button text="Open" display-tooltip-when-elided="true" name="OpenButton" style="min-height: 40px;" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

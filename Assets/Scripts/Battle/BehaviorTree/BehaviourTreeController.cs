@@ -11,7 +11,10 @@ public class BehaviourTreeController : MonoBehaviour
     void Start()
     {
         context = CreateBehaviourTreeContext();
-        tree = tree.Clone();
+        if(tree == null)
+        {
+            tree = tree.Clone();
+        }
     }
 
     void Update()

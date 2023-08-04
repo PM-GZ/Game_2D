@@ -59,12 +59,19 @@ public class NodePort : Port
         }
     }
 
+    public override void OnStopEdgeDragging()
+    {
+        base.OnStopEdgeDragging();
+
+        
+    }
+
     public NodePort(Direction direction, Capacity capacity) : base(Orientation.Vertical, direction, capacity, typeof(bool))
     {
         var connectorListener = new DefaultEdgeConnectorListener();
         m_EdgeConnector = new EdgeConnector<Edge>(connectorListener);
         this.AddManipulator(m_EdgeConnector);
-        style.width = 100;
+        style.width = 50;
     }
 
     public override bool ContainsPoint(Vector2 localPoint)

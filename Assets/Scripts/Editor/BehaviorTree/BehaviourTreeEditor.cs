@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Callbacks;
 using UnityEditor.UIElements;
 using System.Collections.Generic;
-
+using System.IO;
 
 public class BehaviourTreeEditor : EditorWindow
 {
@@ -14,8 +14,9 @@ public class BehaviourTreeEditor : EditorWindow
     private IMGUIContainer _blackboardView;
     private ToolbarMenu _toolbarMenu;
     private TextField _treeNameField;
-    private TextField _locationPathField;
+    private ObjectField _locationPathField;
     private Button _createNewTreeButton;
+    private Button _openTreeButton;
     private VisualElement _overlay;
     private BehaviourTreeSettings _settings;
 
@@ -94,10 +95,16 @@ public class BehaviourTreeEditor : EditorWindow
         _toolbarMenu.menu.AppendAction("New Tree...", (a) => CreateNewTree("NewBehaviorTree"));
 
         _treeNameField = root.Q<TextField>("TreeName");
-        _locationPathField = root.Q<TextField>("LocationPath");
+        _locationPathField = root.Q<ObjectField>("LocationPath");
         _overlay = root.Q<VisualElement>("Overlay");
         _createNewTreeButton = root.Q<Button>("CreateButton");
+        _openTreeButton = root.Q<Button>("OpenButton");
+
+        _locationPathField.objectType = typeof(DefaultAsset);
+        _locationPathField.allowSceneObjects = false;
+        _locationPathField.RegisterValueChangedCallback(OnLocationPathChanged);
         _createNewTreeButton.clicked += () => CreateNewTree(_treeNameField.value);
+        _openTreeButton.clicked += OpenTree;
 
         if (_tree == null)
         {
@@ -111,8 +118,8 @@ public class BehaviourTreeEditor : EditorWindow
 
     private void OnEnable()
     {
-        EditorApplication.playModeStateChanged -= OnPlayerMOdeStateChanged;
-        EditorApplication.playModeStateChanged += OnPlayerMOdeStateChanged;
+        EditorApplication.playModeStateChanged -= OnPlayerModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayerModeStateChanged;
     }
 
     private void OnSelectionChange()
@@ -140,10 +147,10 @@ public class BehaviourTreeEditor : EditorWindow
 
     private void OnDisable()
     {
-        EditorApplication.playModeStateChanged -= OnPlayerMOdeStateChanged;
+        EditorApplication.playModeStateChanged -= OnPlayerModeStateChanged;
     }
 
-    private void OnPlayerMOdeStateChanged(PlayModeStateChange change)
+    private void OnPlayerModeStateChanged(PlayModeStateChange change)
     {
         switch (change)
         {
@@ -165,9 +172,30 @@ public class BehaviourTreeEditor : EditorWindow
         _inspectorView?.UpdateSelection(nodeView);
     }
 
+    private void OnLocationPathChanged(ChangeEvent<UnityEngine.Object> evt)
+    {
+        string path = AssetDatabase.GetAssetPath(evt.newValue);
+        if (string.IsNullOrEmpty(path)) return;
+    }
+
     private void CreateNewTree(string assetName)
     {
-        string path = System.IO.Path.Combine(_locationPathField.value, $"{assetName}.asset");
+        if (_locationPathField.value is not DefaultAsset floder) return;
+
+        if (!Directory.Exists(AssetDatabase.GetAssetPath(floder)))
+        {
+            EditorUtility.DisplayDialog("错误", "路径选择不正确！\n请选择文件夹", "确认");
+            return;
+        }
+
+        string path = AssetDatabase.GetAssetPath(floder);
+        path = Path.Combine(path, $"{assetName}.asset");
+        if (File.Exists(path))
+        {
+            EditorUtility.DisplayDialog("错误", "文件重名，请更改名称再创建！", "确认");
+            return;
+        }
+
         BehaviourTree tree = ScriptableObject.CreateInstance<BehaviourTree>();
         tree.name = _treeNameField.ToString();
         AssetDatabase.CreateAsset(tree, path);
@@ -176,32 +204,29 @@ public class BehaviourTreeEditor : EditorWindow
         EditorGUIUtility.PingObject(tree);
     }
 
+    private void OpenTree()
+    {
+        string path = EditorUtility.OpenFilePanel("选择行为树资产", "Assets/", "asset");
+        if (string.IsNullOrEmpty(path)) return;
+
+        path = path.Replace(Application.dataPath, "Assets");
+        var tree = AssetDatabase.LoadAssetAtPath<BehaviourTree>(path);
+        var id = tree.GetInstanceID();
+        AssetDatabase.OpenAsset(id);
+
+        _overlay.style.display = DisplayStyle.None;
+    }
+
     void SelectTree(BehaviourTree newTree)
     {
-
-        if (_treeView == null)
-        {
+        if (_treeView == null || !newTree)
             return;
-        }
-
-        if (!newTree)
-        {
-            return;
-        }
 
         _tree = newTree;
 
         _overlay.style.visibility = Visibility.Hidden;
 
-        if (Application.isPlaying)
-        {
-            _treeView.PopulateView(_tree);
-        }
-        else
-        {
-            _treeView.PopulateView(_tree);
-        }
-
+        _treeView.PopulateView(_tree);
 
         _treeObject = new SerializedObject(_tree);
         _blackboardProperty = _treeObject.FindProperty("blackboard");

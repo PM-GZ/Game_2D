@@ -1,17 +1,17 @@
 #node-border {
     background-color: rgb(56, 56, 56);
-    border-left-color: rgb(37, 37, 37);
-    border-right-color: rgb(37, 37, 37);
-    border-top-color: rgb(37, 37, 37);
-    border-bottom-color: rgb(37, 37, 37);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-left-color: rgb(221, 221, 221);
+    border-right-color: rgb(221, 221, 221);
+    border-top-color: rgb(221, 221, 221);
+    border-bottom-color: rgb(221, 221, 221);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 #input {
@@ -50,10 +50,10 @@
 }
 
 :selected > #selection-border {
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
 }
 
 :hover:selected > #selection-border {

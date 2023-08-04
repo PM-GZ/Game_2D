@@ -2,20 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TheKiwiCoder {
-    public class Log : ActionNode
+
+public class Log : ActionNode
+{
+    [TextArea(3, 6)] public string message;
+
+    protected override void OnStart()
     {
-        public string message;
+    }
 
-        protected override void OnStart() {
-        }
+    protected override void OnStop()
+    {
+    }
 
-        protected override void OnStop() {
-        }
-
-        protected override State OnUpdate() {
-            Debug.Log($"{message}");
-            return State.Success;
-        }
+    protected override State OnUpdate()
+    {
+        Debug.Log($"{message}");
+        return State.Success;
     }
 }

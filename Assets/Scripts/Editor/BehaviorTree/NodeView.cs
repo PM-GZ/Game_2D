@@ -24,6 +24,7 @@ public class NodeView : UnityEditor.Experimental.GraphView.Node
 
         CreateInputPorts();
         CreateOutputPorts();
+        SetPortColor();
         SetupClasses();
         SetupDataBinding();
     }
@@ -95,7 +96,7 @@ public class NodeView : UnityEditor.Experimental.GraphView.Node
     {
         if (node is ActionNode)
         {
-
+            
         }
         else if (node is CompositeNode)
         {
@@ -115,6 +116,35 @@ public class NodeView : UnityEditor.Experimental.GraphView.Node
             outputPort.portName = "";
             outputPort.style.flexDirection = FlexDirection.ColumnReverse;
             outputContainer.Add(outputPort);
+        }
+    }
+
+    private void SetPortColor()
+    {
+        Color color = Color.white;
+        if (node is ActionNode)
+        {
+            color = new Color(152 / 255f, 206 / 255f, 0, 1);
+        }
+        else if (node is CompositeNode)
+        {
+            color = new Color(246 / 255f, 174 / 255f, 45 / 255f, 1);
+        }
+        else if (node is DecoratorNode)
+        {
+            color = new Color(137 / 255f, 166 / 255f, 251 / 255f, 1);
+        }
+        else if (node is RootNode)
+        {
+            color = new Color(1, 81 / 255f, 84 / 255f, 1);
+        }
+        if (inputPort != null)
+        {
+            inputPort.portColor = color;
+        }
+        if(outputPort != null)
+        {
+            outputPort.portColor = color;
         }
     }
 
