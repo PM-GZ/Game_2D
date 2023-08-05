@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <Style src="project://database/Assets/Scripts/Editor/BehaviorTree/UIBuilder/NodeView.uss?fileID=7433441132597879392&amp;guid=37bfeda3538f1114fae65f252704484a&amp;type=3#NodeView" />
     <ui:VisualElement name="node-state" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; visibility: visible;" />
-    <ui:VisualElement name="node-border" style="visibility: visible;">
+    <ui:VisualElement name="node-border" style="visibility: visible; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;">
         <ui:VisualElement name="contents">
             <ui:VisualElement name="top">
                 <ui:VisualElement name="input" style="position: relative; left: auto;" />
