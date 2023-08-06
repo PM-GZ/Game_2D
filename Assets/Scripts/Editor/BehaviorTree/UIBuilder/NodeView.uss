@@ -123,7 +123,7 @@
 }
 
 .success #node-state {
-    background-color: rgba(60, 212, 0, 0.54);
+    background-color: rgb(60, 212, 0);
 }
 
 .failure #node-state {

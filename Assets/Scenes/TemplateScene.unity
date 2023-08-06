@@ -132,7 +132,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 79689415}
-  - component: {fileID: 79689414}
   - component: {fileID: 79689416}
   m_Layer: 0
   m_Name: GameObject
@@ -141,19 +140,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &79689414
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 79689413}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87f3d627b3195424191eee2c714ac785, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _tree: {fileID: 11400000, guid: a5d17343bcc0d234a8ffdbccf6722358, type: 2}
 --- !u!4 &79689415
 Transform:
   m_ObjectHideFlags: 0
@@ -178,37 +164,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 79689413}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d7b55c7ecdb49a4a89fa5e6f9022861, type: 3}
+  m_Script: {fileID: 11500000, guid: 87f3d627b3195424191eee2c714ac785, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startWhenEnabled: 1
-  asynchronousLoad: 0
-  pauseWhenDisabled: 0
-  restartWhenComplete: 0
-  logTaskChanges: 0
-  group: 0
-  resetValuesOnRestart: 0
-  externalBehavior: {fileID: 0}
-  mBehaviorSource:
-    behaviorName: Behavior
-    behaviorDescription: 
-    mTaskData:
-      types: []
-      parentIndex: 
-      startIndex: 
-      variableStartIndex: 
-      JSONSerialization: '{"EntryTask":{"Type":"BehaviorDesigner.Runtime.Tasks.EntryTask","NodeData":{"Offset":"(103.279778,51.18962)"},"ID":0,"Name":"Entry","Instant":true},"RootTask":{"Type":"BehaviorDesigner.Runtime.Tasks.Log","NodeData":{"Offset":"(3.2797718,162.005951)"},"ID":1,"Name":"Log","Instant":true,"SharedStringtext":{"Type":"BehaviorDesigner.Runtime.SharedString","Name":null,"StringmValue":""},"SharedBoollogError":{"Type":"BehaviorDesigner.Runtime.SharedBool","Name":null,"BooleanmValue":false},"SharedBoollogTime":{"Type":"BehaviorDesigner.Runtime.SharedBool","Name":null,"BooleanmValue":false}}}'
-      fieldSerializationData:
-        typeName: []
-        fieldNameHash: 
-        startIndex: 
-        dataPosition: 
-        unityObjects: []
-        byteData: 
-        byteDataArray: 
-      Version: 1.7.7p1
-  gizmoViewMode: 2
-  showBehaviorDesignerGizmo: 1
+  _tree: {fileID: 11400000, guid: a5d17343bcc0d234a8ffdbccf6722358, type: 2}
 --- !u!1 &165637623
 GameObject:
   m_ObjectHideFlags: 0
