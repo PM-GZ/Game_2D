@@ -82,8 +82,10 @@ public class uAsset
         return Addressables.LoadAssetsAsync<T>(lable, null, true);
     }
 
-    public static AsyncOperationHandle<SceneInstance> LoadSceneAsync(string path, LoadSceneMode mode = LoadSceneMode.Single, bool activeOnLoad = true)
+    public static AsyncOperation LoadSceneAsync(string sceneName, LoadSceneMode mode = LoadSceneMode.Single, bool activeOnLoad = true)
     {
-        return Addressables.LoadSceneAsync(path, mode, activeOnLoad);
+        var async = SceneManager.LoadSceneAsync(sceneName, mode);
+        async.allowSceneActivation = activeOnLoad;
+        return async;
     }
 }

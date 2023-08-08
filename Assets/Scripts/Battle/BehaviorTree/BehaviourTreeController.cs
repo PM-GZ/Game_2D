@@ -24,10 +24,7 @@ public class BehaviourTreeController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (!tree)
-        {
-            return;
-        }
+        if (!tree) return;
 
         BehaviourTree.Traverse(tree.rootNode, (n) =>
         {
