@@ -135,6 +135,8 @@ public class uPlayerData : DataBase
 
     private void SavePlayerData()
     {
+        if (role == null) return;
+
         Vector3 pos = role.transform.position;
         player.playerPos = new uVector3(pos.x, pos.y, pos.z);
         FileUtility.WriteFile(SAVE_PLAYER_DATA_NAME, FileUtility.FileType.PlayerData, totalPlayerData);

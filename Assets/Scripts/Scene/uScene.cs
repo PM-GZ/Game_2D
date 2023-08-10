@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
-using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine;
 
 public class uScene : BaseObject
 {
@@ -15,7 +16,7 @@ public class uScene : BaseObject
         public Action onLoadEnd;
         public Action<Scene> onComplete;
 
-        public static SceneParams Default 
+        public static SceneParams Default
         {
             get
             {
@@ -33,14 +34,10 @@ public class uScene : BaseObject
 
     public Scene curScene { get; private set; }
     private SceneParams _sceneParams;
-    private AsyncOperation _sceneAsync;
+    private AsyncOperationHandle<SceneInstance> _sceneAsync;
     private IEnumerator _sceneCoroutine;
 
     public event Action onSwitchScene;
-
-    public override void Init()
-    {
-    }
 
 
     public void FadeScene(SceneParams param)
@@ -85,7 +82,7 @@ public class uScene : BaseObject
         onSwitchScene?.Invoke();
 
         var loading = Main.Ui.CreatePanel<PanelLoading>();
-        
+
         yield return ExcuteLoadScene();
 
         //loading.SetProgrssValue(0.1f);
@@ -97,26 +94,21 @@ public class uScene : BaseObject
         EndDispose();
 
         loading.SetProgrssValue(1f);
+        yield return new WaitForSeconds(0.5f);
         loading.Close();
     }
 
     private IEnumerator ExcuteLoadScene()
     {
-        _sceneAsync = uAsset.LoadSceneAsync(_sceneParams.sceneName, _sceneParams.mode, _sceneParams.activeOnLoad);
-        while (!_sceneAsync.isDone)
-        {
-            if (_sceneAsync.progress >= 0.9f) break;
-            yield return null;
-        }
-        curScene = SceneManager.GetActiveScene();
+        _sceneAsync = uAsset.LoadSceneAsync(_sceneParams.sceneName, _sceneParams.mode);
+        yield return _sceneAsync;
+        curScene = _sceneAsync.Result.Scene;
     }
 
     private void EndDispose()
     {
         _sceneParams.onLoadEnd?.Invoke();
         _sceneParams.onComplete?.Invoke(curScene);
-
-        _sceneAsync.allowSceneActivation = true;
 
         _sceneAsync = default;
         _sceneCoroutine = null;

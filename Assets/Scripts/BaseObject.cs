@@ -1,95 +1,114 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 public class BaseObject
 {
-    private static List<BaseObject> mBehaviourList = new();
+    static List<WeakReference> mObject = new List<WeakReference>();
     private List<IEnumerator> mCoroutineList = new();
-    private Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
+    //private Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
 
     public BaseObject()
     {
-        mBehaviourList.Add(this);
-        Init();
+        mObject.Add(new WeakReference(this));
     }
 
-    public virtual void Init() { }
-
     #region
-    public static void Update()
+    public static void UpdateAll()
     {
-        for (int i = mBehaviourList.Count - 1; i >= 0; i--)
+        for (int i = 0; i < mObject.Count; i++)
         {
-            var obj = mBehaviourList[i];
-            if (obj == null)
+            if (mObject[i].Target != null)
             {
-                mBehaviourList.Remove(obj);
-                continue;
+                var obj = (BaseObject)mObject[i].Target;
+                obj.Update();
             }
-            obj.UpdateCoroutine();
-            obj.OnUpdate();
+            else
+            {
+                mObject.RemoveAt(i);
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (mCoroutineList != null && mCoroutineList.Count > 0)
+        {
+            UpdateCoroutine();
         }
     }
     #endregion
 
     #region Ð­³Ì
-    public void StartCoroutine(IEnumerator coroutine)
+    protected void StartCoroutine(IEnumerator coroutine)
     {
-        var stack = new Stack<object>();
-        stack.Push(coroutine);
-        mCoroutineDict.Add(coroutine, stack);
+        mCoroutineList ??= new();
+        //mCoroutineDict ??= new();
+
+        //var stack = new Stack<object>();
+        //stack.Push(coroutine);
+        //mCoroutineDict.Add(coroutine, stack);
         mCoroutineList.Add(coroutine);
     }
 
     private void UpdateCoroutine()
     {
-        for (int i = mCoroutineList.Count - 1; i >= 0 && mCoroutineList.Count > 0; --i)
+        for (int i = mCoroutineList.Count - 1; i >= 0; i--)
         {
             var coroutine = mCoroutineList[i];
-            var stack = mCoroutineDict[coroutine];
-            if (!ExcuteCoroutine(stack))
+            if (!coroutine.MoveNext())
             {
-                stack.Pop();
+                mCoroutineList.RemoveAt(i);
             }
-            if (stack.Count == 0 && i < mCoroutineList.Count)
-            {
-                mCoroutineList.Remove(coroutine);
-                mCoroutineDict.Remove(coroutine);
-            }
+            //var stack = mCoroutineDict[coroutine];
+            //if (!ExcuteCoroutine(stack))
+            //{
+            //    stack.Pop();
+            //}
+            //if (stack.Count == 0 && i < mCoroutineList.Count)
+            //{
+            //    mCoroutineList.RemoveAt(i);
+            //    mCoroutineDict.Remove(coroutine);
+            //}
         }
     }
 
-    private bool ExcuteCoroutine(Stack<object> routineStack)
+    //private bool ExcuteCoroutine(Stack<object> routineStack)
+    //{
+    //    object routine = routineStack.Peek();
+    //    IEnumerator ienumator = routine as IEnumerator;
+
+    //    if (ienumator == null) return false;
+
+    //    if (ienumator.MoveNext())
+    //    {
+    //        if (ienumator.Current != null)
+    //            routineStack.Push(ienumator.Current);
+    //    }
+    //    else
+    //    {
+    //        return false;
+    //    }
+    //    return true;
+    //}
+
+    protected void StopCoroutine(IEnumerator coroutine)
     {
-        object routine = routineStack.Peek();
-        IEnumerator ienumator = routine as IEnumerator;
-
-        if (ienumator == null) return false;
-
-        if (ienumator.MoveNext() && ienumator.Current != null)
+        if (mCoroutineList.Contains(coroutine))
         {
-            routineStack.Push(ienumator.Current);
-        }
-
-        return true;
-    }
-
-    public void StopCoroutine(IEnumerator coroutine)
-    {
-        if (mCoroutineDict.ContainsKey(coroutine))
-        {
-            mCoroutineDict[coroutine].Clear();
             mCoroutineList.Remove(coroutine);
-            mCoroutineDict.Remove(coroutine);
         }
+        //if (mCoroutineDict.ContainsKey(coroutine))
+        //{
+        //    mCoroutineDict[coroutine].Clear();
+        //    mCoroutineDict.Remove(coroutine);
+        //}
     }
 
-    public void StopAllCoroutine()
+    protected void StopAllCoroutine()
     {
-        mCoroutineList.Clear();
-        mCoroutineDict.Clear();
+        mCoroutineList?.Clear();
+        //mCoroutineDict?.Clear();
     }
     #endregion
-
-    public virtual void OnUpdate() { }
 }

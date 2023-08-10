@@ -22,33 +22,19 @@ public class Main : MonoBehaviour
     {
         if (_initFlag)
         {
-            ClearScene();
             return;
         }
         DontDestroyOnLoad(gameObject);
-        StartCoroutine(Init());
+        Init();
     }
 
-    private IEnumerator Init()
+    private void Init()
     {
-        ClearScene();
-        yield return null;
         InitCanvas();
-        yield return null;
         InitManager();
         Ui.CreatePanel<PanelStart>();
 
         _initFlag = true;
-    }
-
-    private void ClearScene()
-    {
-        var scene = SceneManager.GetActiveScene();
-        var gos = scene.GetRootGameObjects();
-        for (int i = gos.Length - 1; i >= 0; i--)
-        {
-            Destroy(gos[i]);
-        }
     }
 
     private void InitManager()
@@ -72,7 +58,8 @@ public class Main : MonoBehaviour
 
     private void Update()
     {
-        BaseObject.Update();
+        BaseObject.UpdateAll();
+        GameBehaviour.Update();
     }
 
     private void FixedUpdate()

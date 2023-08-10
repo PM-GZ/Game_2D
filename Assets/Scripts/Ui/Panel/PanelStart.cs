@@ -47,8 +47,6 @@ public class PanelStart : PanelBase
 
     private void OnStartClick()
     {
-        Main.Data.Player.SetRole(1);
-
         var param = uScene.SceneParams.Default;
         param.sceneName = "MainScene";
         param.onLoadEnd = OnLoadSceneEnd;
@@ -57,10 +55,10 @@ public class PanelStart : PanelBase
 
     private void OnLoadSceneEnd()
     {
+        Main.Data.Player.SetRole(1);
+
         Main.Input.SwitchInput(true, true);
-
         uAsset.GetGameObject<PlayerCtrl>();
-
         Main.Ui.CreatePanel<PanelPlayerUi>();
     }
 

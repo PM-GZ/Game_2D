@@ -9,7 +9,7 @@ public class uData : BaseObject
     public uMapData Map { get; private set; }
     public uPlayerData Player { get; private set; }
 
-    public override void Init()
+    public uData()
     {
         InitDataClass();
         InitEvent();

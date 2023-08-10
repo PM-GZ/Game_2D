@@ -26,6 +26,13 @@ public class GameBehaviour : BaseObject
             behaviours[i].OnFixedUpdate();
         }
     }
+    public static void Update()
+    {
+        for (int i = behaviours.Count - 1; i >= 0 && behaviours.Count > 0; i--)
+        {
+            behaviours[i].OnUpdate();
+        }
+    }
     public static void LateUpdate()
     {
         for (int i = behaviours.Count - 1; i >= 0 && behaviours.Count > 0; i--)
@@ -60,6 +67,7 @@ public class GameBehaviour : BaseObject
     public virtual void OnEnable() { }
     public virtual void OnReset() { }
     public virtual void OnFixedUpdate() { }
+    public virtual void OnUpdate() { }
     public virtual void OnLateUpdate() { }
     public virtual void OnDisable() { }
     public virtual void OnRelease() { }

@@ -29,12 +29,10 @@ public class uUi : BaseObject
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
-    private Stack<PanelBase> _panelList = new();
+    private List<PanelBase> _panelList = new();
     private List<PanelBase> _foreverPanel = new();
 
-
-    #region override
-    public override void Init()
+    public uUi()
     {
         mCanvas = GameObject.Find("Canvas").GetComponent<Canvas>();
 
@@ -47,7 +45,6 @@ public class uUi : BaseObject
 
         InitInputEvent();
     }
-    #endregion
 
     private void InitInputEvent()
     {
@@ -61,7 +58,7 @@ public class uUi : BaseObject
         if (_panelList.Count > 1)
         {
             Time.timeScale = 1;
-            var panel = _panelList.Peek();
+            var panel = _panelList[0];
             ClosePanel(panel);
         }
         else
@@ -84,7 +81,7 @@ public class uUi : BaseObject
         }
         panel.Show(true);
         panel.transform.SetAsLastSibling();
-        _panelList.Push(panel);
+        _panelList.Insert(0, panel);
 
         return panel as T;
     }
@@ -177,7 +174,7 @@ public class uUi : BaseObject
     {
         if (_panelList.Count > 0)
         {
-            var panel = _panelList.Peek();
+            var panel = _panelList[0];
             panel.Show(true);
         }
         else
@@ -189,8 +186,10 @@ public class uUi : BaseObject
     #region Close Panel
     public void ClosePanel(PanelBase panel, bool showNext = true)
     {
+        if (panel == null || !_panelList.Contains(panel)) return;
+
         panel.OnClose();
-        _panelList.Pop();
+        _panelList.Remove(panel);
         if (panel.forever)
         {
             panel.Show(false);
@@ -209,7 +208,7 @@ public class uUi : BaseObject
     {
         for (int i = _panelList.Count - 1; i >= 0; i--)
         {
-            var panel = _panelList.Peek();
+            var panel = _panelList[0];
             ClosePanel(panel, false);
         }
     }
