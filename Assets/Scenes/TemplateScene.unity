@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 79689415}
-  - component: {fileID: 79689416}
+  - component: {fileID: 79689417}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -155,7 +155,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &79689416
+--- !u!114 &79689417
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -164,10 +164,97 @@ MonoBehaviour:
   m_GameObject: {fileID: 79689413}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87f3d627b3195424191eee2c714ac785, type: 3}
+  m_Script: {fileID: 11500000, guid: c4c07dc6f8472f346af9c00d5f406ac6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tree: {fileID: 11400000, guid: a5d17343bcc0d234a8ffdbccf6722358, type: 2}
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects:
+    - {fileID: 6452675319678466788}
+    - {fileID: 1684537813036303950}
+    - {fileID: 7564033604416792699}
+    - {fileID: 869676066}
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: tileDataList
+      Entry: 7
+      Data: 0|System.Collections.Generic.List`1[[TileMapInspecterEditor+TileData,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
+    - Name: tile
+      Entry: 6
+      Data: 
+    - Name: rate
+      Entry: 4
+      Data: 0
+    - Name: map
+      Entry: 10
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
+    - Name: tile
+      Entry: 6
+      Data: 
+    - Name: rate
+      Entry: 4
+      Data: 0
+    - Name: map
+      Entry: 10
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
+    - Name: tile
+      Entry: 6
+      Data: 
+    - Name: rate
+      Entry: 4
+      Data: 0
+    - Name: map
+      Entry: 10
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
+    - Name: tile
+      Entry: 6
+      Data: 
+    - Name: rate
+      Entry: 4
+      Data: 0
+    - Name: map
+      Entry: 10
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+  useSeed: 0
+  seed: 0
 --- !u!1 &165637623
 GameObject:
   m_ObjectHideFlags: 0

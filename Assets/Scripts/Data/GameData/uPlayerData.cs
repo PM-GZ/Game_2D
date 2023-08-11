@@ -127,6 +127,7 @@ public class uPlayerData : DataBase
         if (task.Result == null)
         {
             totalPlayerData = PlayerTotalData.Default;
+            SetRole(1);
             yield break;
         }
 

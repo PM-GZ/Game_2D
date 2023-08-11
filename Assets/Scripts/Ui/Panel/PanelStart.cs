@@ -47,19 +47,7 @@ public class PanelStart : PanelBase
 
     private void OnStartClick()
     {
-        var param = uScene.SceneParams.Default;
-        param.sceneName = "MainScene";
-        param.onLoadEnd = OnLoadSceneEnd;
-        Main.Scene.SwitchScene(param);
-    }
-
-    private void OnLoadSceneEnd()
-    {
-        Main.Data.Player.SetRole(1);
-
-        Main.Input.SwitchInput(true, true);
-        uAsset.GetGameObject<PlayerCtrl>();
-        Main.Ui.CreatePanel<PanelPlayerUi>();
+        Main.main.LoadState(new uFirstGameState());
     }
 
     private void OnQuit()

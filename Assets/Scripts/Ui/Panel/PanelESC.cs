@@ -18,19 +18,16 @@ public class PanelESC : PanelBase
 
     private void InitButtons()
     {
-        _goBackMain.onClick = OnGoBackMain;
-        _goBackMenu.onClick = OnGoBackMenu;
+        _goBackMain.onClick = OnBackMainMenu;
+        _goBackMenu.onClick = OnBackMainInterface;
     }
 
-    private void OnGoBackMain()
+    private void OnBackMainMenu()
     {
-        var param = uScene.SceneParams.Default;
-        param.sceneName = "LaunchScene";
-        param.onLoadEnd = () => { Main.Ui.CreatePanel<PanelStart>(); };
-        Main.Scene.SwitchScene(param);
+        Main.main.LoadState(new uBackMainMnueState());
     }
 
-    private void OnGoBackMenu()
+    private void OnBackMainInterface()
     {
         Main.QuitGame();
     }

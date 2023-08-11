@@ -37,7 +37,7 @@ public class PlayerData
             data.roleData = default;
             data.playerName = "";
             data.playerLevel = 0;
-            data.roleID = 0;
+            data.roleID = 1;
             data.playerPos = new uVector3(0, 0, 0);
             return data;
         }

@@ -133,8 +133,7 @@ public class uUi : BaseObject
                 parent = mTop;
                 break;
         }
-        var panel = uAsset.LoadAsset<GameObject>(name);
-        panel = Object.Instantiate(panel, parent);
+        var panel = uAsset.LoadGameObject(name, parent);
         panel.name = name;
         SetComponent(panel);
         return panel;
@@ -211,6 +210,12 @@ public class uUi : BaseObject
             var panel = _panelList[0];
             ClosePanel(panel, false);
         }
+        for (int i = _foreverPanel.Count - 1; i >= 0; i--)
+        {
+            Object.Destroy(_foreverPanel[i].gameObject);
+        }
+        _panelList.Clear();
+        _foreverPanel.Clear();
     }
     #endregion
 }

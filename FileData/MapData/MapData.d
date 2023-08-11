@@ -1,1 +1,1 @@
-{}
+{"MainScene":{"sceneName":"MainScene","plantDict":{"-49790":{"ID":1,"PlantName":"灌木","PrefabName":"shrub","IconPath":null,"IsFruit":true,"Season":1,"FruitID":1,"FruitNum":3,"TotalTime":10,"FruitPhase":0}},"fruitDict":{}},"LaunchScene":{"sceneName":"LaunchScene","plantDict":{},"fruitDict":{}}}

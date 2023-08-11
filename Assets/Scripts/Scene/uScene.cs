@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
-using UnityEngine;
+
 
 public class uScene : BaseObject
 {
@@ -39,7 +39,7 @@ public class uScene : BaseObject
 
     public event Action onSwitchScene;
 
-
+    #region Fade
     public void FadeScene(SceneParams param)
     {
         Main.Input.SwitchInput(false, false);
@@ -65,38 +65,23 @@ public class uScene : BaseObject
 
         fade.EndFade();
     }
+    #endregion
 
-    public void SwitchScene(SceneParams param)
+    #region Switch & Progrss
+    public IEnumerator SwitchScene(SceneParams param)
     {
         Main.Input.SwitchInput(false, false);
-        Main.Ui.CloseAll();
 
         _sceneParams = param;
-        _sceneCoroutine = ExcuteSwitchScene();
-        StartCoroutine(_sceneCoroutine);
-    }
 
-    private IEnumerator ExcuteSwitchScene()
-    {
         _sceneParams.onLoadStart?.Invoke();
         onSwitchScene?.Invoke();
 
-        var loading = Main.Ui.CreatePanel<PanelLoading>();
-
         yield return ExcuteLoadScene();
 
-        //loading.SetProgrssValue(0.1f);
-        //Main.Data.Map.InitMapGoodsData();
-
-        //loading.SetProgrssValue(0.2f);
-        //Main.Data.Map.InitRandomGoods();
-
         EndDispose();
-
-        loading.SetProgrssValue(1f);
-        yield return new WaitForSeconds(0.5f);
-        loading.Close();
     }
+    #endregion
 
     private IEnumerator ExcuteLoadScene()
     {

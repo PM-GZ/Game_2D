@@ -48,10 +48,10 @@ public class PanelGameLevel : PanelBase
 
     private void OnGameStartClick()
     {
-        var param = uScene.SceneParams.Default;
-        param.sceneName = "MainScene";
-        param.onLoadEnd = OnLoadSceneEnd;
-        Main.Scene.SwitchScene(param);
+        //var param = uScene.SceneParams.Default;
+        //param.sceneName = "MainScene";
+        //param.onLoadEnd = OnLoadSceneEnd;
+        //Main.Scene.SwitchScene(param);
     }
 
     private void OnLoadSceneEnd()

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -59,6 +58,7 @@ public class GameBehaviour : BaseObject
         StopAllCoroutine();
         behaviours.Remove(this);
         OnDestroy();
+        Object.Destroy(gameObject);
     }
 
 

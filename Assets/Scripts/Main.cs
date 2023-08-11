@@ -1,7 +1,5 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.Universal;
-using System.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -11,6 +9,7 @@ using UnityEditor;
 [DisallowMultipleComponent]
 public class Main : MonoBehaviour
 {
+    public static Main main { get; private set; }
     private static bool _initFlag = false;
 
     public static uUi Ui { get; private set; }
@@ -18,12 +17,18 @@ public class Main : MonoBehaviour
     public static uData Data { get; private set; }
     public static uScene Scene { get; private set; }
 
+
+    private  uState _curState;
+    private Coroutine _stateCoroutine;
+
     private void Start()
     {
         if (_initFlag)
         {
+            Destroy(gameObject);
             return;
         }
+        main = this;
         DontDestroyOnLoad(gameObject);
         Init();
     }
@@ -58,6 +63,7 @@ public class Main : MonoBehaviour
 
     private void Update()
     {
+        _curState?.Update();
         BaseObject.UpdateAll();
         GameBehaviour.Update();
     }
@@ -84,6 +90,10 @@ public class Main : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        StopAllCoroutines();
+        _curState?.Quit();
+        _curState = null;
+
         Data.OnDestroy();
         Input.Dispose();
     }
@@ -95,5 +105,13 @@ public class Main : MonoBehaviour
 # else
         Application.Quit();
 #endif
+    }
+
+
+    public void LoadState(uState state)
+    {
+        _curState?.Quit();
+        _curState = state;
+        _stateCoroutine = StartCoroutine(_curState.Enter());
     }
 }

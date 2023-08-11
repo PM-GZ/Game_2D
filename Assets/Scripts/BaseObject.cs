@@ -6,7 +6,7 @@ public class BaseObject
 {
     static List<WeakReference> mObject = new List<WeakReference>();
     private List<IEnumerator> mCoroutineList = new();
-    //private Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
+    private Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
 
     public BaseObject()
     {
@@ -43,11 +43,11 @@ public class BaseObject
     protected void StartCoroutine(IEnumerator coroutine)
     {
         mCoroutineList ??= new();
-        //mCoroutineDict ??= new();
+        mCoroutineDict ??= new();
 
-        //var stack = new Stack<object>();
-        //stack.Push(coroutine);
-        //mCoroutineDict.Add(coroutine, stack);
+        var stack = new Stack<object>();
+        stack.Push(coroutine);
+        mCoroutineDict.Add(coroutine, stack);
         mCoroutineList.Add(coroutine);
     }
 
@@ -55,42 +55,39 @@ public class BaseObject
     {
         for (int i = mCoroutineList.Count - 1; i >= 0; i--)
         {
+            if (i >= mCoroutineList.Count) continue;
             var coroutine = mCoroutineList[i];
-            if (!coroutine.MoveNext())
+            var stack = mCoroutineDict[coroutine];
+            if (!ExcuteCoroutine(stack))
+            {
+                stack.Pop();
+            }
+            if (stack.Count == 0 && i < mCoroutineList.Count)
             {
                 mCoroutineList.RemoveAt(i);
+                mCoroutineDict.Remove(coroutine);
             }
-            //var stack = mCoroutineDict[coroutine];
-            //if (!ExcuteCoroutine(stack))
-            //{
-            //    stack.Pop();
-            //}
-            //if (stack.Count == 0 && i < mCoroutineList.Count)
-            //{
-            //    mCoroutineList.RemoveAt(i);
-            //    mCoroutineDict.Remove(coroutine);
-            //}
         }
     }
 
-    //private bool ExcuteCoroutine(Stack<object> routineStack)
-    //{
-    //    object routine = routineStack.Peek();
-    //    IEnumerator ienumator = routine as IEnumerator;
+    private bool ExcuteCoroutine(Stack<object> routineStack)
+    {
+        object routine = routineStack.Peek();
+        IEnumerator ienumator = routine as IEnumerator;
 
-    //    if (ienumator == null) return false;
+        if (ienumator == null) return false;
 
-    //    if (ienumator.MoveNext())
-    //    {
-    //        if (ienumator.Current != null)
-    //            routineStack.Push(ienumator.Current);
-    //    }
-    //    else
-    //    {
-    //        return false;
-    //    }
-    //    return true;
-    //}
+        if (ienumator.MoveNext())
+        {
+            if (ienumator.Current != null)
+                routineStack.Push(ienumator.Current);
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
 
     protected void StopCoroutine(IEnumerator coroutine)
     {
@@ -98,17 +95,17 @@ public class BaseObject
         {
             mCoroutineList.Remove(coroutine);
         }
-        //if (mCoroutineDict.ContainsKey(coroutine))
-        //{
-        //    mCoroutineDict[coroutine].Clear();
-        //    mCoroutineDict.Remove(coroutine);
-        //}
+        if (mCoroutineDict.ContainsKey(coroutine))
+        {
+            mCoroutineDict[coroutine].Clear();
+            mCoroutineDict.Remove(coroutine);
+        }
     }
 
     protected void StopAllCoroutine()
     {
         mCoroutineList?.Clear();
-        //mCoroutineDict?.Clear();
+        mCoroutineDict?.Clear();
     }
     #endregion
 }
