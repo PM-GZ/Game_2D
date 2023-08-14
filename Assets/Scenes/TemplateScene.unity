@@ -170,11 +170,7 @@ MonoBehaviour:
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
-    ReferencedUnityObjects:
-    - {fileID: 6452675319678466788}
-    - {fileID: 1684537813036303950}
-    - {fileID: 7564033604416792699}
-    - {fileID: 869676066}
+    ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -182,79 +178,24 @@ MonoBehaviour:
     SerializationNodes:
     - Name: tileDataList
       Entry: 7
-      Data: 0|System.Collections.Generic.List`1[[TileMapInspecterEditor+TileData,
-        Assembly-CSharp]], mscorlib
+      Data: 0|System.Collections.Generic.List`1[[TileMapGenerator+TileData, Assembly-CSharp]],
+        mscorlib
     - Name: 
       Entry: 12
-      Data: 4
-    - Name: 
-      Entry: 7
-      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
-    - Name: tile
-      Entry: 6
-      Data: 
-    - Name: rate
-      Entry: 4
       Data: 0
-    - Name: map
-      Entry: 10
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
-    - Name: tile
-      Entry: 6
-      Data: 
-    - Name: rate
-      Entry: 4
-      Data: 0
-    - Name: map
-      Entry: 10
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
-    - Name: tile
-      Entry: 6
-      Data: 
-    - Name: rate
-      Entry: 4
-      Data: 0
-    - Name: map
-      Entry: 10
-      Data: 2
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: TileMapInspecterEditor+TileData, Assembly-CSharp
-    - Name: tile
-      Entry: 6
-      Data: 
-    - Name: rate
-      Entry: 4
-      Data: 0
-    - Name: map
-      Entry: 10
-      Data: 3
-    - Name: 
-      Entry: 8
-      Data: 
     - Name: 
       Entry: 13
       Data: 
     - Name: 
       Entry: 8
       Data: 
+  grid: {fileID: 3446905371241067156}
+  width: 100
+  height: 100
+  lacunarity: 0.03
   useSeed: 0
   seed: 0
+  tilemaps: []
 --- !u!1 &165637623
 GameObject:
   m_ObjectHideFlags: 0
