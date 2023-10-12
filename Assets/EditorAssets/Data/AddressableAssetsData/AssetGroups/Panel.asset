@@ -76,7 +76,9 @@ MonoBehaviour:
   - m_GUID: acb0f498aa2c75841ab7286ff11131e1
     m_Address: PanelSettings
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Prefab
+    - Panel
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}

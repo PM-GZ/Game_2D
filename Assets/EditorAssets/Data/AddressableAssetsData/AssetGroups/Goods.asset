@@ -42,8 +42,8 @@ MonoBehaviour:
     m_Address: berry_red
     m_ReadOnly: 0
     m_SerializedLabels:
-    - Good
     - Prefab
+    - Good
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f8cd0b55c65caa8498dba03f3e045124
     m_Address: shrub
