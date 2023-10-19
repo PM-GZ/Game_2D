@@ -1,19 +1,28 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class BaseObject
 {
-    static List<WeakReference> mObject = new List<WeakReference>();
+    private class InvokeData
+    {
+        public Action action;
+        public float invokeTime;
+        public float intervalTime;
+    }
+    static private List<WeakReference> mObject = new List<WeakReference>();
+
     private List<IEnumerator> mCoroutineList = new();
     private Dictionary<IEnumerator, Stack<object>> mCoroutineDict = new();
+    private List<InvokeData> mInvokeList = new();
 
     public BaseObject()
     {
         mObject.Add(new WeakReference(this));
     }
 
-    #region
+    #region update
     public static void UpdateAll()
     {
         for (int i = 0; i < mObject.Count; i++)
@@ -21,20 +30,74 @@ public class BaseObject
             if (mObject[i].Target != null)
             {
                 var obj = (BaseObject)mObject[i].Target;
-                obj.Update();
+                obj.UpdateIEnumerator();
             }
             else
             {
                 mObject.RemoveAt(i);
             }
         }
+
+        
     }
 
-    private void Update()
+    private void UpdateIEnumerator()
     {
         if (mCoroutineList != null && mCoroutineList.Count > 0)
         {
             UpdateCoroutine();
+        }
+
+        UpdateInvoke();
+    }
+
+    private void UpdateInvoke()
+    {
+        for (int i = mInvokeList.Count - 1; i >= 0; i--)
+        {
+            var invoke = mInvokeList[i];
+            if(invoke.invokeTime >= Time.realtimeSinceStartup)
+            {
+                invoke?.action();
+                if(invoke.intervalTime == 0)
+                {
+                    mInvokeList.Remove(invoke);
+                }
+                else
+                {
+                    invoke.invokeTime = Time.realtimeSinceStartup + invoke.intervalTime;
+                }
+            }
+        }
+    }
+    #endregion
+
+    #region Invoke
+    public void Invoke(Action action, float time)
+    {
+        InvokeRepeat(action, time, 0);
+    }
+
+    public void InvokeRepeat(Action action, float time, float interval)
+    {
+        var invoke = new InvokeData
+        {
+            action = action,
+            invokeTime = time + Time.realtimeSinceStartup,
+            intervalTime = interval,
+        };
+        mInvokeList.Add(invoke);
+    }
+
+    public void CancelInvoke(Action action)
+    {
+        for (int i = mInvokeList.Count - 1; i >= 0; i--)
+        {
+            if (mInvokeList[i].action == action)
+            {
+                mInvokeList.RemoveAt(i);
+                return;
+            }
         }
     }
     #endregion
@@ -106,6 +169,7 @@ public class BaseObject
     {
         mCoroutineList?.Clear();
         mCoroutineDict?.Clear();
+        mInvokeList?.Clear();
     }
     #endregion
 }
