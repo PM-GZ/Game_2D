@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class BaseObject
 {
@@ -37,8 +36,6 @@ public class BaseObject
                 mObject.RemoveAt(i);
             }
         }
-
-        
     }
 
     private void UpdateIEnumerator()
@@ -56,7 +53,7 @@ public class BaseObject
         for (int i = mInvokeList.Count - 1; i >= 0; i--)
         {
             var invoke = mInvokeList[i];
-            if(invoke.invokeTime >= Time.realtimeSinceStartup)
+            if(invoke.invokeTime <= Global.GameTime)
             {
                 invoke?.action();
                 if(invoke.intervalTime == 0)
@@ -65,7 +62,7 @@ public class BaseObject
                 }
                 else
                 {
-                    invoke.invokeTime = Time.realtimeSinceStartup + invoke.intervalTime;
+                    invoke.invokeTime = Global.GameTime + invoke.intervalTime;
                 }
             }
         }
@@ -83,7 +80,7 @@ public class BaseObject
         var invoke = new InvokeData
         {
             action = action,
-            invokeTime = time + Time.realtimeSinceStartup,
+            invokeTime = time + Global.GameTime,
             intervalTime = interval,
         };
         mInvokeList.Add(invoke);
