@@ -40,31 +40,31 @@ public class uScene : BaseObject
     public event Action onSwitchScene;
 
     #region Fade
-    public void FadeScene(SceneParams param)
-    {
-        Main.Input.SwitchInput(false, false);
-        Main.Ui.CloseAll();
+    //public void FadeScene(SceneParams param)
+    //{
+    //    Main.Input.SwitchInput(false, false);
+    //    Main.Ui.CloseAll();
 
-        _sceneParams = param;
-        _sceneCoroutine = ExcuteFadeScene();
-        StartCoroutine(_sceneCoroutine);
-    }
+    //    _sceneParams = param;
+    //    _sceneCoroutine = ExcuteFadeScene();
+    //    StartCoroutine(_sceneCoroutine);
+    //}
 
-    private IEnumerator ExcuteFadeScene()
-    {
-        var fade = Main.Ui.CreatePanel<PanelFade>();
-        fade.StartFade();
+    //private IEnumerator ExcuteFadeScene()
+    //{
+    //    var fade = Main.Ui.CreatePanel<PanelFade>();
+    //    fade.StartFade();
 
-        onSwitchScene?.Invoke();
+    //    onSwitchScene?.Invoke();
 
-        _sceneParams.onLoadStart?.Invoke();
+    //    _sceneParams.onLoadStart?.Invoke();
 
-        yield return ExcuteLoadScene();
+    //    yield return ExcuteLoadScene();
 
-        EndDispose();
+    //    EndDispose();
 
-        fade.EndFade();
-    }
+    //    fade.EndFade();
+    //}
     #endregion
 
     #region Switch & Progrss

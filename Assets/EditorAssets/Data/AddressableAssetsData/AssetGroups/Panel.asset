@@ -17,20 +17,6 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 1704f4d31b4d1fb4d9f8b5e73b99fed1
   m_SerializeEntries:
-  - m_GUID: 724dc1db2c32c6a4d95b7f5c1d9bd76a
-    m_Address: PanelStart
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e65f5e6f7310672438a7cd78199eb7c3
-    m_Address: PanelGameLevel
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 75b8bccac30307c49a5cff73fe86b076
     m_Address: DialogErrorTip
     m_ReadOnly: 0
@@ -38,43 +24,8 @@ MonoBehaviour:
     - Prefab
     - Panel
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 43fb0cca07c7cfe409eda0014a1052cf
-    m_Address: PanelLoading
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 12f70799cda594347b56f7388eaf1e1c
-    m_Address: PanelESC
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3530d218d2ab9024a810e66fcfefa3b0
-    m_Address: PanelPlayerUi
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 91ac4894390ffdf4eb86c23d9cd0f7cf
-    m_Address: PanelFade
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cb9165c9f68eea04b9ae4423f54b313f
     m_Address: DialogSupplies
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Prefab
-    - Panel
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: acb0f498aa2c75841ab7286ff11131e1
-    m_Address: PanelSettings
     m_ReadOnly: 0
     m_SerializedLabels:
     - Prefab

@@ -29,8 +29,8 @@ public class uUi : BaseObject
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
-    private List<PanelBase> _panelList = new();
-    private List<PanelBase> _foreverPanel = new();
+    private List<BasePanel> _panelList = new();
+    private List<BasePanel> _foreverPanel = new();
 
     public uUi()
     {
@@ -64,14 +64,14 @@ public class uUi : BaseObject
         else
         {
             Time.timeScale = 0;
-            CreatePanel<PanelESC>();
+            //CreatePanel<PanelESC>();
         }
     }
     #endregion
 
-    public T CreatePanel<T>(object param = null) where T : PanelBase
+    public T CreatePanel<T>(object param = null) where T : BasePanel
     {
-        PanelBase panel = GetForeverPanel<T>();
+        BasePanel panel = GetForeverPanel<T>();
         if (panel == null)
         {
             panel = Activator.CreateInstance<T>();
@@ -92,7 +92,7 @@ public class uUi : BaseObject
         return uiCamera.WorldToScreenPoint(worldPostion);
     }
 
-    public T GetPanel<T>() where T : PanelBase
+    public T GetPanel<T>() where T : BasePanel
     {
         foreach (var panel in _panelList)
         {
@@ -101,7 +101,7 @@ public class uUi : BaseObject
         return null;
     }
 
-    public T GetForeverPanel<T>() where T : PanelBase
+    public T GetForeverPanel<T>() where T : BasePanel
     {
         foreach (var panel in _foreverPanel)
         {
@@ -161,7 +161,7 @@ public class uUi : BaseObject
         canvas.sortingOrder = sortOrder;
     }
 
-    public void SetForeverPanel(PanelBase panel)
+    public void SetForeverPanel(BasePanel panel)
     {
         if (!panel.forever || _foreverPanel.Contains(panel)) return;
         
@@ -178,12 +178,12 @@ public class uUi : BaseObject
         }
         else
         {
-            CreatePanel<PanelPlayerUi>();
+            //CreatePanel<PanelPlayerUi>();
         }
     }
 
     #region Close Panel
-    public void ClosePanel(PanelBase panel, bool showNext = true)
+    public void ClosePanel(BasePanel panel, bool showNext = true)
     {
         if (panel == null || !_panelList.Contains(panel)) return;
 

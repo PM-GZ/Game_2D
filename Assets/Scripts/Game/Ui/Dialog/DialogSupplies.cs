@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [PanelBind("DialogSupplies", PanelType.Dialog, true)]
-public class DialogSupplies : PanelBase
+public class DialogSupplies : BasePanel
 {
     public struct Param
     {
