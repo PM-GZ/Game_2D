@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 [RequireComponent(typeof(Button))]
 [RequireComponent(typeof(Image))]
-public class UiButton : BaseUiBasic, IPointerClickHandler
+public class UiButton : UiBaseBasic, IPointerClickHandler
 {
     [SerializeField] private Button _Button;
     [SerializeField] private Image _Image;

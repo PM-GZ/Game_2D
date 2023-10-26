@@ -1,6 +1,6 @@
 
 
-public class UiMark : BaseUiBasic
+public class UiMark : UiBaseBasic
 {
     
 }

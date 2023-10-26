@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 8184055d68bc174458463baa1452d309
   m_currentHash:
     serializedVersion: 2
-    Hash: e10b4705f02060a2712ecfed17c46bad
+    Hash: 3466a8243ac04e7f4981212c65b2f97b
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_BundleLocalCatalog: 0
@@ -99,6 +99,7 @@ MonoBehaviour:
     - Ui
     - Scene
     - Good
+    - Locale
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 2875fe606eba3ba4fbefc5a20fe0641e, type: 2}

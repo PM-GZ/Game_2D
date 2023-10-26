@@ -10,22 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Role
+  m_Name: Panel
   m_EditorClassIdentifier: 
-  m_GroupName: Role
+  m_GroupName: Panel
   m_Data:
     m_SerializedData: []
-  m_GUID: bf60574337626c345b6d96b5ad45a991
+  m_GUID: 1704f4d31b4d1fb4d9f8b5e73b99fed1
   m_SerializeEntries:
-  - m_GUID: 61f0c00485e416c45b9b4938bd7105a7
-    m_Address: Cat
+  - m_GUID: 75b8bccac30307c49a5cff73fe86b076
+    m_Address: DialogErrorTip
     m_ReadOnly: 0
     m_SerializedLabels:
     - Prefab
+    - Panel
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 0617ab440a5d7b745871f80e554cdf0a, type: 2}
-    - {fileID: 11400000, guid: c06290b768b31e3458677e4ff260e4ab, type: 2}
+    - {fileID: 11400000, guid: 5af3d522da5500e4287df3b1f182fcc9, type: 2}
+    - {fileID: 11400000, guid: 9ad52d282fc1ff243a42f0e6db570768, type: 2}

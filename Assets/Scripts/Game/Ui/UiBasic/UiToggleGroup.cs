@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 
 [RequireComponent(typeof(ToggleGroup))]
-public class UiToggleGroup : BaseUiBasic
+public class UiToggleGroup : UiBaseBasic
 {
     [SerializeField] private ToggleGroup _ToggleGroup;
     [SerializeField] private List<Toggle> _Toggles = new();

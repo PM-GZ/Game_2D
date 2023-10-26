@@ -1,4 +1,4 @@
-using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,288 +7,203 @@ using UnityEngine.UI;
 
 
 [RequireComponent(typeof(ScrollRect))]
-public class UiCycleScroll : BaseUiBasic
+public class UiCycleScroll : UiBaseBasic, ILayoutGroup
 {
-    [Header("先使用布局组件调整布局，运行时使用本组件中计算的结果")]
     [SerializeField] private ScrollRect _Scroll;
-    [SerializeField] private GridLayoutGroup _gridLayout;
-    [SerializeField] private ContentSizeFitter _sizeFitter;
 
-    public RectTransform content { get => _Scroll.content; }
-    public RectTransform viewport { get => _Scroll.viewport; }
-    private Vector2 _halfSize { get => _gridLayout.cellSize / 2; }
+    public RectTransform Content { get => _Scroll.content; }
+    public RectTransform Viewport { get => _Scroll.viewport; }
 
-    private int _dataCount;
-    private int _itemCount;
-    public List<UiItemBase> items { get; private set; }
-    private Action<UiItemBase, int> _onCreate;
-    private Action<UiItemBase, int> _onPosChanged;
-    private Action<UiItemBase, int> _onRefresh;
-    private Action<UiItemBase, int> _onSelect;
-    private Action _onCreateAll;
-
-    private Vector2 _lastDelta;
-    private int _dataIndex;
-    private int _dataIndex2;
+    public GridLayoutGroup.Axis Axis;
+    private GridLayoutGroup.Constraint mConstraint;
+    public int ConstraintCount;
+    public TextAnchor ChildAlignment;
+    public Vector2 CellSize;
+    public Vector2 Spaceing;
+    public RectOffset Padding;
 
 
-    public void InitItem<T>(int dataCount, Action<UiItemBase, int> onCreate = null, Action<UiItemBase, int> onPosChanged = null, Action<UiItemBase, int> onRefresh = null, Action<UiItemBase, int> onSelect = null, Action onCreateAll = null) where T : UiItemBase
+    private List<RectTransform> mCellList;
+    private int mRowCount, mColumnCount;
+
+
+    //public void SetGroup<UiBaseItem>
+
+
+
+    public void SetLayoutHorizontal()
     {
-        _sizeFitter.enabled = false;
-        _gridLayout.enabled = false;
-
-        _dataCount = dataCount;
-        _onCreate = onCreate;
-        _onPosChanged = onPosChanged;
-        _onRefresh = onRefresh;
-        _onSelect = onSelect;
-        _onCreateAll = onCreateAll;
-
-        GetChildCount();
-        CreateItem<T>();
-        SetContent();
-        _lastDelta = content.anchoredPosition;
-        _Scroll.onValueChanged.AddListener(OnScrollValueChanged);
+        SetCellPosition(0);
     }
 
-    private void GetChildCount()
+    public void SetLayoutVertical()
     {
-        if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedRowCount)
+        SetCellPosition(1);
+    }
+
+    private void SetCellPosition(int axis)
+    {
+        if (axis == 0)
         {
-            float count = viewport.rect.width / (_gridLayout.cellSize.x + _gridLayout.spacing.x);
-            _itemCount = Mathf.CeilToInt(count) * _gridLayout.constraintCount;
-        }
-        else if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
-        {
-            float count = viewport.rect.height / (_gridLayout.cellSize.y + _gridLayout.spacing.y);
-            _itemCount = Mathf.CeilToInt(count) * _gridLayout.constraintCount;
+            SetScrollView();
+            InitCells();
         }
         else
         {
-            _itemCount = 30;
-        }
-        _itemCount += _gridLayout.constraintCount * 2;
-        int diffValue = _itemCount % _gridLayout.constraintCount;
-        if (diffValue != 0)
-        {
-            _itemCount += _gridLayout.constraintCount - diffValue;
+            CalculateRowAndColnumCount();
+            InitContent();
+            SetChildrenInitPos();
         }
     }
 
-    private void CreateItem<T>() where T : UiItemBase
+    private void SetScrollView()
     {
-        items = new(_itemCount);
-        for (int i = 0; i < _itemCount; i++)
-        {
-            var item = UiUtility.CreateItem<T>(content);
-            item.Init(i, _onSelect);
-            SetItem(item, i);
-
-            _dataIndex2++;
-            items.Add(item);
-            _onCreate?.Invoke(item, i);
-        }
-        _onCreateAll?.Invoke();
+        bool hor = Axis == GridLayoutGroup.Axis.Horizontal;
+        _Scroll.horizontal = hor;
+        _Scroll.vertical = !hor;
     }
 
-    private void SetItem(UiItemBase item, int index)
+    private void InitContent()
     {
-        item.rectTransform.sizeDelta = _gridLayout.cellSize;
-        item.rectTransform.anchorMin = Vector2.up;
-        item.rectTransform.anchorMax = Vector2.up;
-
-        var pos = GetItemPos(index);
-        item.rectTransform.anchoredPosition = pos;
-    }
-
-    private void SetContent()
-    {
-        int count = _dataCount / _gridLayout.constraintCount;
-        if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedRowCount)
+        if(Axis == GridLayoutGroup.Axis.Horizontal)
         {
-            content.anchorMin = Vector2.zero;
-            content.anchorMax = Vector2.up;
-            float x = count * (_gridLayout.cellSize.x + _gridLayout.spacing.x) + _gridLayout.padding.left -_gridLayout.spacing.x;
-            content.sizeDelta = new Vector2(x, viewport.rect.height);
-        }
-        else if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
-        {
-            content.anchorMin = Vector2.up;
-            content.anchorMax = Vector2.one;
-            float y = count * (_gridLayout.cellSize.y + _gridLayout.spacing.y) + _gridLayout.padding.top - _gridLayout.spacing.y;
-            content.sizeDelta = new Vector2(viewport.rect.width, y);
-        }
-    }
-
-    private void OnScrollValueChanged(Vector2 delta)
-    {
-        if (items.Count == 0) return;
-        delta = content.anchoredPosition - _lastDelta;
-        if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedRowCount)
-        {
-            if (delta.x == 0) return;
-            HorizontalMove(delta.x);
+            SetContentRect(Vector2.up, Vector2.zero);
+            mConstraint = GridLayoutGroup.Constraint.FixedRowCount;
         }
         else
         {
-            if (delta.y == 0) return;
-            VerticalMove(delta.y);
+            SetContentRect(Vector2.one, Vector2.up);
+            mConstraint = GridLayoutGroup.Constraint.FixedColumnCount;
         }
-        _lastDelta = content.anchoredPosition;
+        float x = CellSize.x * mColumnCount + Padding.left + Spaceing.x * mColumnCount - Spaceing.x;
+        float y = CellSize.y * mRowCount + Padding.top + Spaceing.y * mRowCount - Spaceing.y;
+        Content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, x);
+        Content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, y);
     }
 
-    private void HorizontalMove(float x)
+    private void SetContentRect(Vector2 anchorMax, Vector2 anchorMin)
     {
-        if (x < 0)
+        Content.anchorMax = anchorMax;
+        Content.anchorMin = anchorMin;
+    }
+
+    private void InitCells()
+    {
+        mCellList = Content.GetComponentsInChildren<RectTransform>().ToList();
+        mCellList.Remove(Content);
+
+        foreach (var cell in mCellList)
         {
-            MoveToRight();
+            cell.anchorMin = Vector2.up;
+            cell.anchorMax = Vector2.up;
+            cell.sizeDelta = CellSize;
+        }
+    }
+
+    private void CalculateRowAndColnumCount()
+    {
+        int cellCount = mCellList.Count;
+        float width = Content.rect.size.x;
+        float height = Content.rect.size.y;
+
+        if (mConstraint == GridLayoutGroup.Constraint.FixedColumnCount)
+        {
+            mRowCount = ConstraintCount;
+
+            if (cellCount > mRowCount)
+                mColumnCount = cellCount / mRowCount + (cellCount % mRowCount == 0 ? 0 : 1);
+        }
+        else if (mConstraint == GridLayoutGroup.Constraint.FixedRowCount)
+        {
+            mColumnCount = ConstraintCount;
+
+            if (cellCount > mColumnCount)
+                mRowCount = cellCount / mColumnCount + (cellCount % mColumnCount == 0 ? 0 : 1);
         }
         else
         {
-            MoveToLeft();
+            if (CellSize.x + Spaceing.x <= 0)
+                mRowCount = int.MaxValue;
+            else
+                mRowCount = Mathf.Max(1, Mathf.FloorToInt((width - Padding.horizontal + Spaceing.x + 0.001f) / (CellSize.x + Spaceing.x)));
+
+            if (CellSize.y + Spaceing.y <= 0)
+                mColumnCount = int.MaxValue;
+            else
+                mColumnCount = Mathf.Max(1, Mathf.FloorToInt((height - Padding.vertical + Spaceing.y + 0.001f) / (CellSize.y + Spaceing.y)));
         }
     }
 
-    private void VerticalMove(float y)
+    private void SetChildrenInitPos()
     {
-        if (y < 0)
+        int childrenCount = mCellList.Count;
+
+        int cellsPerMainAxis, actualCellCountX, actualCellCountY;
+        if (Axis == GridLayoutGroup.Axis.Horizontal)
         {
-            MoveToTop();
+            cellsPerMainAxis = mRowCount;
+            actualCellCountX = Mathf.Clamp(mRowCount, 1, childrenCount);
+            actualCellCountY = Mathf.Clamp(mColumnCount, 1, Mathf.CeilToInt(childrenCount / (float)cellsPerMainAxis));
         }
         else
         {
-            MoveToBotton();
+            cellsPerMainAxis = mColumnCount;
+            actualCellCountY = Mathf.Clamp(mColumnCount, 1, childrenCount);
+            actualCellCountX = Mathf.Clamp(mRowCount, 1, Mathf.CeilToInt(childrenCount / (float)cellsPerMainAxis));
         }
-    }
 
-    private void MoveToRight()
-    {
-        if (content.anchoredPosition.x >= 0 || _dataIndex2 == _dataCount) return;
+        Vector2 requiredSpace = new Vector2(
+            actualCellCountX * CellSize.x + (actualCellCountX - 1) * Spaceing.x,
+            actualCellCountY * CellSize.y + (actualCellCountY - 1) * Spaceing.y
+        );
+        Vector2 startOffset = new Vector2(
+            GetStartOffset(0, requiredSpace.x),
+            GetStartOffset(1, requiredSpace.y)
+        );
 
-        var item = GetItem<UiItemBase>(0);
-        float x = Mathf.Abs(content.anchoredPosition.x);
-        if (x - _gridLayout.spacing.x >= item.rectTransform.anchoredPosition.x + _halfSize.x)
+        for (int i = 0; i < childrenCount; i++)
         {
-            for (int i = 0; i < _gridLayout.constraintCount; i++)
+            int positionX;
+            int positionY;
+            if (Axis == GridLayoutGroup.Axis.Horizontal)
             {
-                item = GetItem<UiItemBase>(0);
-                SetItemLastSibling(item);
-                _dataIndex++;
-                _dataIndex2++;
-
-                if (_dataIndex2 == _dataCount) return;
+                positionX = i % cellsPerMainAxis;
+                positionY = i / cellsPerMainAxis;
             }
-        }
-    }
-
-    private void MoveToLeft()
-    {
-        if (content.offsetMin.x >= 0 || _dataIndex == 0) return;
-
-        var item = GetItem<UiItemBase>(items.Count - 1);
-        float x = content.rect.width - viewport.rect.width + content.offsetMin.x;
-        float itemX = content.rect.width - item.rectTransform.anchoredPosition.x;
-        if (x - _halfSize.x >= itemX + _gridLayout.spacing.x)
-        {
-            for (int i = 0; i < _gridLayout.constraintCount; i++)
+            else
             {
-                _dataIndex--;
-                _dataIndex2--;
-                item = GetItem<UiItemBase>(items.Count - 1);
-                SetItemFirstSibling(item);
-
-                if (_dataIndex == 0) return;
+                positionX = i / cellsPerMainAxis;
+                positionY = i % cellsPerMainAxis;
             }
+
+            SetChildAxis(mCellList[i], 0, startOffset.x + (CellSize[0] + Spaceing[0]) * positionX, CellSize[0]);
+            SetChildAxis(mCellList[i], 1, startOffset.y + (CellSize[1] + Spaceing[1]) * positionY, CellSize[1]);
         }
     }
-
-    private void MoveToBotton()
+    private float GetStartOffset(int axis, float requiredSpaceWithoutPadding)
     {
-        if (content.anchoredPosition.y <= 0 || _dataIndex2 == _dataCount) return;
-
-        var item = GetItem<UiItemBase>(0);
-        float y = Mathf.Abs(item.rectTransform.anchoredPosition.y) + _halfSize.y;
-        if (content.anchoredPosition.y - _gridLayout.spacing.x >= y)
-        {
-            for (int i = 0; i < _gridLayout.constraintCount; i++)
-            {
-                item = GetItem<UiItemBase>(0);
-                SetItemLastSibling(item);
-                _dataIndex++;
-                _dataIndex2++;
-
-                if (_dataIndex2 == _dataCount) return;
-            }
-        }
+        float requiredSpace = requiredSpaceWithoutPadding + (axis == 0 ? Padding.horizontal : Padding.vertical);
+        float availableSpace = rectTransform.rect.size[axis];
+        float surplusSpace = availableSpace - requiredSpace;
+        float alignmentOnAxis = GetAlignmentOnAxis(axis);
+        return (axis == 0 ? Padding.left : Padding.top) + surplusSpace * alignmentOnAxis;
     }
 
-    private void MoveToTop()
+    private float GetAlignmentOnAxis(int axis)
     {
-        if (content.offsetMin.y >= 0 || _dataIndex == 0) return;
-
-        var item = GetItem<UiItemBase>(items.Count - 1);
-        float y = content.rect.height - viewport.rect.height - content.offsetMax.y;
-        float itemY = content.rect.height + item.rectTransform.anchoredPosition.y;
-        if (y - _halfSize.y >= itemY + _gridLayout.spacing.y)
-        {
-            for (int i = 0; i < _gridLayout.constraintCount; i++)
-            {
-                _dataIndex--;
-                _dataIndex2--;
-                item = GetItem<UiItemBase>(items.Count - 1);
-                SetItemFirstSibling(item);
-
-                if (_dataIndex == 0) return;
-            }
-        }
+        if (axis == 0)
+            return ((int)ChildAlignment % 3) * 0.5f;
+        else
+            return ((int)ChildAlignment / 3) * 0.5f;
     }
 
-    private Vector2 GetItemPos(int index)
+    private void SetChildAxis(RectTransform rect, int axis, float pos, float size)
     {
-        Vector2 pos = Vector2.zero;
-        if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedRowCount)
-        {
-            int x = index / _gridLayout.constraintCount;
-            int y = index % _gridLayout.constraintCount;
-            float posX = x * (_gridLayout.cellSize.x + _gridLayout.spacing.x) + _gridLayout.padding.left + _halfSize.x;
-            float posY = y * (_gridLayout.cellSize.y + _gridLayout.spacing.y) + _gridLayout.padding.top + _halfSize.y;
-            pos = new Vector2(posX, -posY);
-        }
-        else if (_gridLayout.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
-        {
-            int x = index % _gridLayout.constraintCount;
-            int y = index / _gridLayout.constraintCount;
-            float posX = x * (_gridLayout.cellSize.x + _gridLayout.spacing.x) + _gridLayout.padding.left + _halfSize.x;
-            float posY = y * (_gridLayout.cellSize.y + _gridLayout.spacing.y) + _gridLayout.padding.top + _halfSize.y;
-            pos = new Vector2(posX, -posY);
-        }
-        return pos;
-    }
+        if (rect == null)
+            return;
 
-    private void SetItemLastSibling(UiItemBase item)
-    {
-        item.rectTransform.anchoredPosition = GetItemPos(_dataIndex2);
-        item.transform.SetAsLastSibling();
-        _onPosChanged?.Invoke(item, _dataIndex2);
-    }
-    private void SetItemFirstSibling(UiItemBase item)
-    {
-        item.rectTransform.anchoredPosition = GetItemPos(_dataIndex);
-        item.transform.SetAsFirstSibling();
-        _onPosChanged?.Invoke(item, _dataIndex);
-    }
-
-    public void Refresh()
-    {
-        for (int i = 0; i < _itemCount; i++)
-        {
-            _onRefresh?.Invoke(items[i], i);
-        }
-    }
-
-    public T GetItem<T>(int index) where T : Component
-    {
-        if (items.Count == 0) return default;
-        return content.GetChild(index % items.Count).GetComponent<T>();
+        Vector2 anchoredPosition = rect.anchoredPosition;
+        anchoredPosition[axis] = (axis == 0) ? (pos + size * rect.pivot[axis] * 1) : (-pos - size * (1f - rect.pivot[axis]) * 1);
+        rect.anchoredPosition = anchoredPosition;
     }
 }
