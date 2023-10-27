@@ -57,7 +57,7 @@ public class BasePanel : BaseObject
             uiBinds.Add(bind.name, field);
         }
 
-        foreach (var ui in gameObject.GetComponentsInChildren<IBaseUiBasic>(true))
+        foreach (var ui in gameObject.GetComponentsInChildren<IUiBaseBasic>(true))
         {
             if (uiBinds.TryGetValue(ui.gameObject.name, out var field))
             {
