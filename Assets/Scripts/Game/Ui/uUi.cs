@@ -87,7 +87,7 @@ public class uUi : BaseObject
     }
 
     #region Get Func
-    public Vector3 GetScreenPostion(Vector3 worldPostion)
+    public Vector3 WorldToScreenPoint(Vector3 worldPostion)
     {
         return uiCamera.WorldToScreenPoint(worldPostion);
     }

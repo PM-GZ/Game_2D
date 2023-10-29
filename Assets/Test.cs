@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Test : MonoBehaviour
 {
-    public UiCycleScroll scroll;
+    public UiBaseScroll scroll;
 
     void Start()
     {
-        scroll.SetGroup<UiSuppliesListItem>(new UiCycleScroll.CycleListData
+        scroll.SetCycleCellGroup<UiSuppliesListItem>(new UiCycleScroll.CycleScrollData
         {
             DataCount = 20,
-            CellCount = 10
-        });    
+            CellCount = 5
+        });
     }
 
     // Update is called once per frame
