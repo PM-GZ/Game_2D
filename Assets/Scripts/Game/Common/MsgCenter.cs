@@ -4,51 +4,54 @@ using System.Collections.Generic;
 
 
 
-public class MsgCenter
+public static class MsgCenter
 {
-    public enum EventType { }
+    public enum EventType 
+    {
+
+    }
     public struct ActionData
     {
         public EventType type;
         public object data;
     }
 
-    private Dictionary<EventType, Action<ActionData>> actionDict = new();
+    private static Dictionary<EventType, Action<ActionData>> mActionDict = new();
 
-    public void AddAction(EventType type, Action<ActionData> action)
+    public static void AddAction(EventType type, Action<ActionData> action)
     {
-        if (!actionDict.TryAdd(type, action))
+        if (!mActionDict.TryAdd(type, action))
         {
-            actionDict[type] += action;
+            mActionDict[type] += action;
         }
     }
 
-    public void RemoveAction(EventType type, Action<ActionData> action)
+    public static void RemoveAction(EventType type, Action<ActionData> action)
     {
-        if (action != null && actionDict.ContainsKey(type))
+        if (action != null && mActionDict.ContainsKey(type))
         {
-            actionDict[type] -= action;
-            if (actionDict[type] == null)
+            mActionDict[type] -= action;
+            if (mActionDict[type] == null)
             {
-                actionDict.Remove(type);
+                mActionDict.Remove(type);
             }
         }
     }
 
-    public void Broadcast(EventType type, ActionData data)
+    public static void Broadcast(EventType type, ActionData data)
     {
-        if (actionDict.ContainsKey(type))
+        if (mActionDict.ContainsKey(type))
         {
-            actionDict[type]?.Invoke(data);
+            mActionDict[type]?.Invoke(data);
         }
     }
 
-    public void ClearAction()
+    public static void ClearAction()
     {
-        foreach (var action in actionDict)
+        foreach (var action in mActionDict)
         {
-            actionDict[action.Key] = null;
+            mActionDict[action.Key] = null;
         }
-        actionDict.Clear();
+        mActionDict.Clear();
     }
 }
