@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +16,18 @@ public class UiCycleScroll : UiBaseScroll
     public override void InitScroll()
     {
         base.InitScroll();
+
         _Scroll.onValueChanged.AddListener(OnScrollValueChanged);
+    }
+
+    public override void SetLayoutHorizontal()
+    {
+        SetCellPosition(0);
+    }
+
+    public override void SetLayoutVertical()
+    {
+        SetCellPosition(1);
     }
 
     private void OnScrollValueChanged(Vector2 delta)
@@ -153,5 +163,106 @@ public class UiCycleScroll : UiBaseScroll
         bool hor = Axis == GridLayoutGroup.Axis.Horizontal;
         _Scroll.horizontal = hor;
         _Scroll.vertical = !hor;
+    }
+    private void SetCellPosition(int axis)
+    {
+        if (axis == 0)
+        {
+            InitCellRect(Vector2.up, Vector2.up);
+        }
+        else
+        {
+            CalculateRowAndColnumCount();
+            InitContentRect();
+            InitCellPosition();
+        }
+    }
+
+    private void InitContentRect()
+    {
+        Vector2 size;
+        if (mAxisHorizontal)
+        {
+            SetContentAnchors(Vector2.zero, Vector2.up);
+        }
+        else
+        {
+            SetContentAnchors(Vector2.up, Vector2.one);
+        }
+        size.x = mColumnCount * CellSize.x + mColumnCount * Spacing.x + Padding.left - Spacing.x;
+        size.y = mRowCount * CellSize.y + mRowCount * Spacing.y + Padding.top - Spacing.y;
+        Content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+        Content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+    }
+
+    private void SetContentAnchors(Vector2 min, Vector2 max)
+    {
+        Content.anchorMin = min;
+        Content.anchorMax = max;
+    }
+
+    private void CalculateRowAndColnumCount()
+    {
+        float width = rectTransform.rect.size.x;
+        float height = rectTransform.rect.size.y;
+
+        if (Axis == GridLayoutGroup.Axis.Vertical)
+        {
+            mColumnCount = AxisCount;
+
+            if (mScrollData.DataCount > mColumnCount)
+                mRowCount = mScrollData.DataCount / mColumnCount + (mScrollData.DataCount % mColumnCount == 0 ? 0 : 1);
+        }
+        else if (Axis == GridLayoutGroup.Axis.Horizontal)
+        {
+            mRowCount = AxisCount;
+
+            if (mScrollData.DataCount > mRowCount)
+                mColumnCount = mScrollData.DataCount / mRowCount + (mScrollData.DataCount % mRowCount == 0 ? 0 : 1);
+        }
+        else
+        {
+            if (CellSize.x + Spacing.x <= 0)
+                mRowCount = int.MaxValue;
+            else
+                mRowCount = Mathf.Max(1, Mathf.FloorToInt((width - Padding.horizontal + Spacing.x + 0.001f) / (CellSize.x + Spacing.x)));
+
+            if (CellSize.y + Spacing.y <= 0)
+                mColumnCount = int.MaxValue;
+            else
+                mColumnCount = Mathf.Max(1, Mathf.FloorToInt((height - Padding.vertical + Spacing.y + 0.001f) / (CellSize.y + Spacing.y)));
+        }
+    }
+
+    private void InitCellPosition()
+    {
+        for (int i = 0; i < mCellList.Count; i++)
+        {
+            var pos = GetCellPosition(i);
+            var rect = mCellList[i].rectTransform;
+            rect.anchoredPosition = pos;
+        }
+    }
+
+    public Vector2 GetCellPosition(int index)
+    {
+        Vector2 pos = Vector2.zero;
+        if (Axis == GridLayoutGroup.Axis.Horizontal)
+        {
+            int row = index % mRowCount;
+            int column = index / mRowCount;
+
+            pos.x = column * CellSize.x + column * Spacing.x + Padding.left + CellHalfSize.x;
+            pos.y = -(row * CellSize.y + row * Spacing.y + Padding.top + CellHalfSize.y);
+        }
+        else if (Axis == GridLayoutGroup.Axis.Vertical)
+        {
+            int row = index / mColumnCount;
+            int column = index % mColumnCount;
+
+            pos.x = column * CellSize.x + column * Spacing.x + Padding.left + CellHalfSize.x;
+            pos.y = -(row * CellSize.y + row * Spacing.y + Padding.top + CellHalfSize.y);
+        }
+        return pos;
     }
 }
