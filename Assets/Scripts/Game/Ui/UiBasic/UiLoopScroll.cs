@@ -48,17 +48,17 @@ public class UiLoopScroll : UiBaseScroll
         base.OnEndDrag(eventData);
         float delta = (mAxisHorizontal ? mDelta.x : mDelta.y);
         float time = Mathf.Abs(delta / 100);
-        mTween = DOTween.To(MoveBuffer, delta / 200, 0, time).OnComplete(AutoRestPose).SetLink(gameObject);
+        mTween = DOTween.To(MoveBuffer, delta, 0, time).OnComplete(AutoRestPose).SetLink(gameObject);
     }
 
     private void MoveBuffer(float a)
     {
+        mDelta.x = mDelta.y = a;
         OnScrollValueChanged();
     }
 
     private void AutoRestPose()
     {
-        var last = transform.GetChild(transform.childCount - 1);
         mAutoPoseCoroutine = StartCoroutine(StartAutoReset());
     }
 
@@ -70,7 +70,7 @@ public class UiLoopScroll : UiBaseScroll
             for (int i = 0; i < transform.childCount; i++)
             {
                 var child = transform.GetChild(i);
-                child.localPosition = Vector2.MoveTowards(child.localPosition, mInitCellPosArray[i], Time.deltaTime * 60);
+                child.localPosition = Vector2.MoveTowards(child.localPosition, mInitCellPosArray[i], Time.deltaTime * AutoResetPoseSpeed);
             }
             yield return null;
         }
@@ -100,11 +100,24 @@ public class UiLoopScroll : UiBaseScroll
     {
         base.InitScroll();
         mInitCellPosArray = new Vector2[transform.childCount];
-        mDisplayDataIndex = transform.childCount / 2;
+        mDisplayCellIndex = mDisplayDataIndex = transform.childCount / 2;
         InitCellRect(Vector2.one / 2, Vector2.one / 2);
         InitCellPosition();
-        mMinRect = transform.GetChild(0).localPosition.x;
-        mMaxRect = transform.GetChild(transform.childCount - 1).localPosition.x;
+        InitMinAndMaxRect();
+    }
+
+    private void InitMinAndMaxRect()
+    {
+        if (mAxisHorizontal)
+        {
+            mMinRect = transform.GetChild(0).localPosition.x - CellHalfSize.x;
+            mMaxRect = transform.GetChild(transform.childCount - 1).localPosition.x + CellHalfSize.x;
+        }
+        else
+        {
+            mMinRect = transform.GetChild(0).localPosition.y + CellHalfSize.y;
+            mMaxRect = transform.GetChild(transform.childCount - 1).localPosition.y - CellHalfSize.y;
+        }
     }
 
     private void OnScrollValueChanged()
@@ -259,7 +272,7 @@ public class UiLoopScroll : UiBaseScroll
         }
     }
 
-    public Vector2 GetCellPosition(int index)
+    private Vector2 GetCellPosition(int index)
     {
         Vector2 pos = Vector2.zero;
         if (Axis == GridLayoutGroup.Axis.Horizontal)

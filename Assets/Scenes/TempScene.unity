@@ -220,7 +220,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Content: {fileID: 299889099}
   Axis: 0
-  AxisCount: 1
   CellSize: {x: 100, y: 100}
   Spacing: {x: 10, y: 10}
   Padding:
@@ -228,7 +227,7 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  AutoResetPoseSpeed: 3
+  AutoResetPoseSpeed: 300
 --- !u!114 &299889101
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -10,6 +10,7 @@ public class UiCycleScroll : UiBaseScroll
 
     public RectTransform Viewport { get => _Scroll.viewport; }
 
+    [Min(1)] public int AxisCount = 1;
 
     protected int mCurMinIndex, mCurMaxIndex;
     private Vector3 mPreContentPos;
@@ -167,6 +168,7 @@ public class UiCycleScroll : UiBaseScroll
         _Scroll.horizontal = hor;
         _Scroll.vertical = !hor;
     }
+
     private void SetCellPosition(int axis)
     {
         if (axis == 0)
@@ -175,6 +177,7 @@ public class UiCycleScroll : UiBaseScroll
         }
         else
         {
+            CalculateRowAndColnumCount(AxisCount);
             InitContentRect();
             InitCellPosition();
         }

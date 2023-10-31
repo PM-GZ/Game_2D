@@ -20,7 +20,6 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
 
     public RectTransform Content;
     public GridLayoutGroup.Axis Axis;
-    [Min(1)] public int AxisCount = 1;
     public Vector2 CellSize, Spacing;
     public RectOffset Padding;
 
@@ -29,7 +28,6 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
     protected List<UiBaseListItem> mCellList;
     protected int mRowCount, mColumnCount;
 
-    protected Transform mParent;
     protected bool mAxisHorizontal;
     protected CycleScrollData mScrollData;
     protected Vector2 mDelta;
@@ -101,7 +99,7 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
     {
         mAxisHorizontal = Axis == GridLayoutGroup.Axis.Horizontal;
         mCellList = GetComponentsInChildren<UiBaseListItem>().ToList();
-        CalculateRowAndColnumCount();
+        CalculateRowAndColnumCount(1);
         SetLayoutHorizontal();
         SetLayoutVertical();
     }
@@ -125,36 +123,21 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
         }
     }
 
-    private void CalculateRowAndColnumCount()
+    protected void CalculateRowAndColnumCount(int axisCount)
     {
-        float width = rectTransform.rect.size.x;
-        float height = rectTransform.rect.size.y;
-
         if (Axis == GridLayoutGroup.Axis.Vertical)
         {
-            mColumnCount = AxisCount;
+            mColumnCount = axisCount;
 
             if (mScrollData.DataCount > mColumnCount)
                 mRowCount = mScrollData.DataCount / mColumnCount + (mScrollData.DataCount % mColumnCount == 0 ? 0 : 1);
         }
-        else if (Axis == GridLayoutGroup.Axis.Horizontal)
+        else
         {
-            mRowCount = AxisCount;
+            mRowCount = axisCount;
 
             if (mScrollData.DataCount > mRowCount)
                 mColumnCount = mScrollData.DataCount / mRowCount + (mScrollData.DataCount % mRowCount == 0 ? 0 : 1);
-        }
-        else
-        {
-            if (CellSize.x + Spacing.x <= 0)
-                mRowCount = int.MaxValue;
-            else
-                mRowCount = Mathf.Max(1, Mathf.FloorToInt((width - Padding.horizontal + Spacing.x + 0.001f) / (CellSize.x + Spacing.x)));
-
-            if (CellSize.y + Spacing.y <= 0)
-                mColumnCount = int.MaxValue;
-            else
-                mColumnCount = Mathf.Max(1, Mathf.FloorToInt((height - Padding.vertical + Spacing.y + 0.001f) / (CellSize.y + Spacing.y)));
         }
     }
 
