@@ -6,11 +6,18 @@ using UnityEngine;
 
 public static class Constent
 {
+    static Constent()
+    {
+        BUILTIN_PATH = "Builtin/";
+    }
+
+    public static string BUILTIN_PATH { get; set; }
+
     public static string AssetConfigPath = "Assets/EditorAssets/AssetsFloderConfig.asset";
     public static string AssetJsonPath = "Assets/GameAssets/Config/AssetsConfig.json";
 
 #if UNITY_EDITOR
-    public static string FILE_WRITE_PATH =  "FileData";
+    public static string FILE_WRITE_PATH = "FileData";
 #else
     public static string FILE_WRITE_PATH = Application.persistentDataPath + "/FileData";
 #endif

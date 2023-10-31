@@ -1,4 +1,3 @@
-using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,414 +6,200 @@ using System.Text;
 
 public static class TABLE
 {
-    private static Dictionary<Type, TableData> _TableDataDict = new();
+    static Dictionary<Type, TableData> mTables = new Dictionary<Type, TableData>();
 
-    public static void SetTableData(Type type, TableData data)
+    public static T Get<T>() where T : TableData, new()
     {
-        _TableDataDict.Add(type, data);
+        return (T)Get(typeof(T));
     }
 
-    public static T Get<T>() where T : TableData
+    public static void UnloadAll()
     {
-        Type type = typeof(T);
-        if (!_TableDataDict.ContainsKey(type))
+        mTables.Clear();
+    }
+
+    public static TableData Get(Type type)
+    {
+        TableData t;
+        if (mTables.TryGetValue(type, out t))
         {
-            T t = Activator.CreateInstance<T>();
-            _TableDataDict.Add(type, t);
+            return t;
         }
-        return _TableDataDict[type] as T;
+        else
+        {
+            t = (TableData)Activator.CreateInstance(type);
+            mTables.Add(type, t);
+            return t;
+        }
+    }
+
+    public static void Load(params Type[] preloadTables)
+    {
+        foreach (var v in preloadTables)
+        {
+            mTables[v] = Activator.CreateInstance(v) as TableData;
+        }
+    }
+
+    public static void LoadEx(params Type[] preloadTables)
+    {
+        foreach (var v in preloadTables)
+        {
+            if (!mTables.ContainsKey(v))
+            {
+                mTables.Add(v, Activator.CreateInstance(v) as TableData);
+            }
+        }
     }
 }
 
 public class TableData
 {
-    protected RawTable rawTable;
+    public string PACKET_NAME { get; protected set; }
+    protected RawTable mTableData;
 }
 
 public class RawTable
 {
-    public object[,] data;
-    public string[] colType;
-    public int rowNum;
-    public int colNum;
+    public object[,] _data;
+    public string[] _colType;
+    public int _nRows;
+    public int _nColumns;
 
-    public void ReadTable(string tableName, string sheetName)
+    public void readBinary(string table_name, string packet_name)
     {
-        data = null;
-
-        using ExcelWorksheet sheet = TableUtility.GetTable(tableName, sheetName);
-        if (sheet == null)
+        ClearData();
+        MemoryStream f;
+        if (Packet.EnableDevelopmentMode)
         {
-            throw new Exception($"Error sheet {sheetName} int the table£º{tableName} is null");
+            f = new MemoryStream(PacketEditor.GetFile(packet_name, table_name));
         }
-        TableUtility.RemoveEmptyRow(sheet);
-
-        rowNum = sheet.Dimension.Rows;
-        colNum = sheet.Dimension.Columns;
-        data = new object[colNum, rowNum - 3];
-        colType = new string[colNum];
-
-        for (int i = 1; i <= colNum; i++)
+        else
         {
-            string type = sheet.GetValue(3, i).ToString();
-            colType[i - 1] = type;
+            f = new MemoryStream(Packet.GetFile(packet_name, table_name));
+        }
+        if (f == null)
+            return;
+
+        BinaryReader br = new BinaryReader(f, Encoding.UTF8);
+
+        int columns = 0, rows = 0;
+        rows = br.ReadInt32();
+        columns = br.ReadInt32();
+
+        _nRows = rows;
+        _nColumns = columns;
+
+        if (_nRows == 0 || _nColumns == 0)
+        {
+            throw new Exception("Error reading tablesize Rows is " + _nRows.ToString() + " and _nColumns is " + _nColumns.ToString() + ".");
+        }
+
+        _colType = new string[_nColumns];
+        for (int j = 0; j < columns; j++)
+        {
+            _colType[j] = br.ReadString();
+        }
+
+        _data = new object[_nColumns, _nRows];
+        for (int i = 0; i < columns; i++)
+        {
+            string type = _colType[i];
 
             if (type == "string")
             {
-                GetValue<string>(rowNum, i, sheet);
-            }
-            else if (type == "byte")
-            {
-                GetValue<byte>(rowNum, i, sheet);
-            }
-            else if (type == "sbyte")
-            {
-                GetValue<sbyte>(rowNum, i, sheet);
-            }
-            else if (type == "short")
-            {
-                GetValue<short>(rowNum, i, sheet);
-            }
-            else if (type == "ushort")
-            {
-                GetValue<ushort>(rowNum, i, sheet);
-            }
-            else if (type == "int")
-            {
-                GetValue<int>(rowNum, i, sheet);
-            }
-            else if (type == "uint")
-            {
-                GetValue<uint>(rowNum, i, sheet);
-            }
-            else if (type == "long")
-            {
-                GetValue<long>(rowNum, i, sheet);
-            }
-            else if (type == "ulong")
-            {
-                GetValue<ulong>(rowNum, i, sheet);
-            }
-            else if (type == "float")
-            {
-                GetValue<float>(rowNum, i, sheet);
-            }
-            else if (type == "double")
-            {
-                GetValue<double>(rowNum, i, sheet);
-            }
-            else if (type == "bool")
-            {
-                GetValue<bool>(rowNum, i, sheet);
-            }
-            else if (type == "enum" || type.StartsWith("enum:"))
-            {
-                for (int j = 4; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i - 1, j - 4] = sheet.GetValue(j, i);
-                }
-            }
-            else if (type == "DateTime")
-            {
-                for (var j = 4; j <= rowNum; j++)
-                {
-                    if (!DateTime.TryParseExact(sheet.GetValue(j, i).ToString(), "yyyy-MM-dd HH:mm:ss",
-                            CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
-                    {
-                        throw new Exception("Invalid DateTime data!");
-                    }
-
-                    data[i - 1, j - 4] = dateTime;
-                }
-            }
-            else if (type == "int[]")
-            {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split(',');
-                    var array = new int[arr.Length];
-                    for (var k = 0; k < array.Length; k++) array[k] = int.Parse(arr[k]);
-                    data[i - 1, j - 4] = array;
-                }
-            }
-            else if (type == "uint[]")
-            {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split(',');
-                    var array = new uint[arr.Length];
-                    for (var k = 0; k < array.Length; k++) array[k] = uint.Parse(arr[k]);
-                    data[i - 1, j - 4] = array;
-                }
-            }
-            else if (type == "float[]")
-            {
-                for (int j = 4; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split(',');
-                    var array = new float[arr.Length];
-                    for (var k = 0; k < array.Length; k++) array[k] = float.Parse(arr[k]);
-                    data[i - 1, j - 4] = array;
-                }
-            }
-            else if (type == "double[]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split(',');
-                    var array = new double[arr.Length];
-                    for (var k = 0; k < array.Length; k++) array[k] = double.Parse(arr[k]);
-                    data[i - 1, j - 4] = array;
-                }
-            }
-            else if (type == "string[]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split(',');
-                    var array = new string[arr.Length];
-                    for (var k = 0; k < array.Length; k++) array[k] = arr[k];
-                    data[i - 1, j - 4] = array;
-                }
-            }
-            else if (type == "int[][]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split('|');
-
-                    var array = new int[arr.Length][];
-                    for (var k = 0; k < array.Length; k++)
-                    {
-                        var arr2 = arr[k].Split(',');
-
-                        array[k] = new int[arr2.Length];
-                        for (int m = 0; m < arr2.Length; m++)
-                        {
-                            array[k][m] = int.Parse(arr2[m]);
-                        }
-                    }
-                    data[i, j] = array;
-                }
-            }
-            else if (type == "uint[][]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split('|');
-
-                    var array = new uint[arr.Length][];
-                    for (var k = 0; k < array.Length; k++)
-                    {
-                        var arr2 = arr[k].Split(',');
-
-                        array[k] = new uint[arr2.Length];
-                        for (int m = 0; m < arr2.Length; m++)
-                        {
-                            array[k][m] = uint.Parse(arr2[m]);
-                        }
-                    }
-                    data[i, j] = array;
-                }
-            }
-            else if (type == "float[][]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split('|');
-
-                    var array = new float[arr.Length][];
-                    for (var k = 0; k < array.Length; k++)
-                    {
-                        var arr2 = arr[k].Split(',');
-
-                        array[k] = new float[arr2.Length];
-                        for (int m = 0; m < arr2.Length; m++)
-                        {
-                            array[k][m] = float.Parse(arr2[m]);
-                        }
-                    }
-                    data[i, j] = array;
-                }
-            }
-            else if (type == "double[][]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split('|');
-
-                    var array = new double[arr.Length][];
-                    for (var k = 0; k < array.Length; k++)
-                    {
-                        var arr2 = arr[k].Split(',');
-
-                        array[k] = new double[arr2.Length];
-                        for (int m = 0; m < arr2.Length; m++)
-                        {
-                            array[k][m] = double.Parse(arr2[m]);
-                        }
-                    }
-                    data[i, j] = array;
-                }
-            }
-            else if (type == "string[][]")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    string value = sheet.GetValue(j, i).ToString();
-                    var arr = value.Split('|');
-
-                    var array = new string[arr.Length][];
-                    for (var k = 0; k < array.Length; k++)
-                    {
-                        var arr2 = arr[k].Split(',');
-
-                        array[k] = new string[arr2.Length];
-                        for (int m = 0; m < arr2.Length; m++)
-                        {
-                            array[k][m] = arr2[m];
-                        }
-                    }
-                    data[i, j] = array;
-                }
-            }
-            else
-            {
-                throw new Exception("Unrecognized type! type = " + type);
-            }
-        }
-    }
-
-    public void ReadTable(string tableName)
-    {
-        data = null;
-
-        byte[] file = TableUtility.GetFile(tableName);
-        MemoryStream ms = new MemoryStream(file);
-        if (ms == null) return;
-
-        BinaryReader br = new BinaryReader(ms, Encoding.UTF8);
-        rowNum = br.ReadInt32();
-        colNum = br.ReadInt32();
-        if (rowNum == 0 || colNum == 0)
-        {
-            throw new Exception("Error reading tablesize _rowNum is " + rowNum + " and _n_colNum is " + colNum + ".");
-        }
-
-        colType = new string[colNum];
-        for (int j = 0; j < colNum; j++)
-        {
-            colType[j] = br.ReadString();
-        }
-
-        data = new object[colNum, rowNum];
-        for (int i = 0; i < colNum; i++)
-        {
-            string type = colType[i];
-
-            if (type == "string")
-            {
-                for (int j = 0; j <= rowNum; j++)
-                {
-                    data[i, j] = br.ReadString();
+                    _data[i, j] = br.ReadString();
                 }
             }
             else if (type == "byte")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadByte();
+                    _data[i, j] = br.ReadByte();
                 }
             }
             else if (type == "sbyte")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadSByte();
+                    _data[i, j] = br.ReadSByte();
                 }
             }
             else if (type == "short")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadInt16();
+                    _data[i, j] = br.ReadInt16();
                 }
             }
             else if (type == "ushort")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadUInt16();
+                    _data[i, j] = br.ReadUInt16();
                 }
             }
             else if (type == "int")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadInt32();
+                    _data[i, j] = br.ReadInt32();
                 }
             }
             else if (type == "uint")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadUInt32();
+                    _data[i, j] = br.ReadUInt32();
                 }
             }
             else if (type == "long")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadInt64();
+                    _data[i, j] = br.ReadInt64();
                 }
             }
             else if (type == "ulong")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadInt64();
+                    _data[i, j] = br.ReadInt64();
                 }
             }
             else if (type == "float")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadSingle();
+                    _data[i, j] = br.ReadSingle();
                 }
             }
             else if (type == "double")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadDouble();
+                    _data[i, j] = br.ReadDouble();
                 }
             }
             else if (type == "bool")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadSByte() != 0;
+                    _data[i, j] = br.ReadSByte() != 0;
                 }
             }
             else if (type == "enum" || type.StartsWith("enum:"))
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
-                    data[i, j] = br.ReadInt32();
+                    _data[i, j] = br.ReadInt32();
                 }
             }
             else if (type == "DateTime")
             {
-                for (var j = 0; j <= rowNum; j++)
+                for (var j = 0; j < rows; j++)
                 {
                     if (!DateTime.TryParseExact(br.ReadString(), "yyyy-MM-dd HH:mm:ss",
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
@@ -422,57 +207,57 @@ public class RawTable
                         throw new Exception("Invalid DateTime data!");
                     }
 
-                    data[i, j] = dateTime;
+                    _data[i, j] = dateTime;
                 }
             }
             else if (type == "int[]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new int[br.ReadInt32()];
                     for (var k = 0; k < array.Length; k++) array[k] = br.ReadInt32();
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "uint[]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new uint[br.ReadInt32()];
                     for (var k = 0; k < array.Length; k++) array[k] = br.ReadUInt32();
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "float[]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new float[br.ReadInt32()];
                     for (var k = 0; k < array.Length; k++) array[k] = br.ReadSingle();
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "double[]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new double[br.ReadInt32()];
                     for (var k = 0; k < array.Length; k++) array[k] = br.ReadDouble();
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "string[]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new string[br.ReadInt32()];
                     for (var k = 0; k < array.Length; k++) array[k] = br.ReadString();
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "int[][]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new int[br.ReadInt32()][];
                     for (var k = 0; k < array.Length; k++)
@@ -486,12 +271,12 @@ public class RawTable
                             array[k][m] = br.ReadInt32();
                         }
                     }
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "uint[][]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new uint[br.ReadInt32()][];
                     for (var k = 0; k < array.Length; k++)
@@ -505,12 +290,12 @@ public class RawTable
                             array[k][m] = br.ReadUInt32();
                         }
                     }
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "float[][]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new float[br.ReadInt32()][];
                     for (var k = 0; k < array.Length; k++)
@@ -524,12 +309,12 @@ public class RawTable
                             array[k][m] = br.ReadSingle();
                         }
                     }
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "double[][]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new double[br.ReadInt32()][];
                     for (var k = 0; k < array.Length; k++)
@@ -543,12 +328,12 @@ public class RawTable
                             array[k][m] = br.ReadDouble();
                         }
                     }
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
             else if (type == "string[][]")
             {
-                for (int j = 0; j <= rowNum; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     var array = new string[br.ReadInt32()][];
                     for (var k = 0; k < array.Length; k++)
@@ -562,252 +347,340 @@ public class RawTable
                             array[k][m] = br.ReadString();
                         }
                     }
-                    data[i, j] = array;
+                    _data[i, j] = array;
                 }
             }
+            //else if (type == "xVector3")
+            //{
+            //    for (int j = 0; j < rows; j++)
+            //    {
+            //        xVector3 data = xVector3.Zero;
+            //        string str = br.ReadString();
+            //        string[] items = str.Split(',');
+            //        try
+            //        {
+            //            data.x = float.Parse(items[0]);
+            //            data.y = float.Parse(items[1]);
+            //            data.z = float.Parse(items[2]);
+            //        }
+            //        catch
+            //        {
+            //            throw new Exception("Wrong row or column !" + " Row: " + i + " Columns: " + j + "¡¡data = " + str);
+            //        }
+            //        _data[i, j] = data;
+            //    }
+            //}
             else
             {
                 throw new Exception("Unrecognized type! type = " + type);
             }
         }
-        ms.Close();
+        f.Close();
         br.Close();
-    }
-
-    private void GetValue<T>(int rowNum, int i, ExcelWorksheet sheet)
-    {
-        for (int j = 4; j <= rowNum; j++)
-        {
-            data[i - 1, j - 4] = sheet.GetValue<T>(j, i);
-        }
-    }
-
-    #region GetValue Func
-    private Exception ErrorTip(int row, int column)
-    {
-        return new Exception("Wrong Type Set!" + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + colType[column] + " . Code read Type : " + data[column, row].GetType());
     }
 
     public string GetString(int row, int column)
     {
         if (!CheckRowCol(row, column)) return string.Empty;
 
-        if (colType[column] == "string")
+        if (_colType[column] == "string")
         {
-            return (string)data[column, row];
+            return (string)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Wrong Type Set!" + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public byte GetByte(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
-        if (colType[column] == "byte")
+        if (_colType[column] == "byte")
         {
-            return (byte)data[column, row];
+            return (byte)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public sbyte GetSByte(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
-        if (colType[column] == "sbyte")
+        if (_colType[column] == "sbyte")
         {
-            return (sbyte)data[column, row];
+            return (sbyte)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public int GetInt(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "int" || colType[column] == "Int32")
+        if (_colType[column] == "int" || _colType[column] == "Int32")
         {
-            return Convert.ToInt32(data[column, row]);
+            return Convert.ToInt32(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
 
     public int[] GetIntArray(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "int[]")
+        if (_colType[column] == "int[]")
         {
-            return (int[])data[column, row];
+            return (int[])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public int[][] GetIntArray2(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "int[][]")
+        if (_colType[column] == "int[][]")
         {
-            return (int[][])data[column, row];
+            return (int[][])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public int GetEnum(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "enum" || colType[column].StartsWith("enum"))
+        if (_colType[column] == "enum" || _colType[column].StartsWith("enum"))
         {
-            return Convert.ToInt32(data[column, row]);
+            return Convert.ToInt32(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public uint GetUInt(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "uint" || colType[column] == "UInt32")
+        if (_colType[column] == "uint" || _colType[column] == "UInt32")
         {
-            return Convert.ToUInt32(data[column, row]);
+            return Convert.ToUInt32(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public uint[] GetUIntArray(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "uint[]")
+        if (_colType[column] == "uint[]")
         {
-            return (uint[])data[column, row];
+            return (uint[])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public uint[][] GetUIntArray2(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "uint[][]")
+        if (_colType[column] == "uint[][]")
         {
-            return (uint[][])data[column, row];
+            return (uint[][])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public short GetShort(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "short" || colType[column] == "Int16")
+        if (_colType[column] == "short" || _colType[column] == "Int16")
         {
-            return Convert.ToInt16(data[column, row]);
+            return Convert.ToInt16(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
 
     public ushort GetUShort(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "ushort" || colType[column] == "UInt16")
+        if (_colType[column] == "ushort" || _colType[column] == "UInt16")
         {
-            return Convert.ToUInt16(data[column, row]);
+            return Convert.ToUInt16(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public long GetLong(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "long" || colType[column] == "Int64")
+        if (_colType[column] == "long" || _colType[column] == "Int64")
         {
-            return Convert.ToInt64(data[column, row]);
+            return Convert.ToInt64(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public ulong GetULong(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "ulong" || colType[column] == "UInt64")
+        if (_colType[column] == "ulong" || _colType[column] == "UInt64")
         {
-            return Convert.ToUInt64(data[column, row]);
+            return Convert.ToUInt64(_data[column, row]);
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public float GetFloat(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "float")
+        if (_colType[column] == "float")
         {
-            return (float)data[column, row];
+            return (float)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public float[] GetFloatArray(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "float[]")
+        if (_colType[column] == "float[]")
         {
-            return (float[])data[column, row];
+            return (float[])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public float[][] GetFloatArray2(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "float[][]")
+        if (_colType[column] == "float[][]")
         {
-            return (float[][])data[column, row];
+            return (float[][])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public double GetDouble(int row, int column)
     {
         if (!CheckRowCol(row, column)) return 0;
 
-        if (colType[column] == "double")
+        if (_colType[column] == "double")
         {
-            return (double)data[column, row];
+            return (double)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public double[] GetDoubleArray(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "double[]")
+        if (_colType[column] == "double[]")
         {
-            return (double[])data[column, row];
+            return (double[])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public string[] GetStringArray(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "string[]")
+        if (_colType[column] == "string[]")
         {
-            return (string[])data[column, row];
+            return (string[])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public double[][] GetDoubleArray2(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "double[][]")
+        if (_colType[column] == "double[][]")
         {
-            return (double[][])data[column, row];
+            return (double[][])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public string[][] GetStringArray2(int row, int column)
     {
         if (!CheckRowCol(row, column)) return null;
-        if (colType[column] == "string[][]")
+        if (_colType[column] == "string[][]")
         {
-            return (string[][])data[column, row];
+            return (string[][])_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set Row : " + row.ToString() + " Column: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
     public bool GetBool(int row, int column)
     {
         if (!CheckRowCol(row, column)) return false;
 
-        if (colType[column] == "bool")
+        if (_colType[column] == "bool")
         {
-            return (bool)data[column, row];
+            return (bool)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
+    //public xVector3 GetVector3(int row, int column)
+    //{
+    //    if (!CheckRowCol(row, column)) return xVector3.Zero;
+
+    //    if (_colType[column] == "Vector3")
+    //    {
+    //        return (xVector3)_data[column, row];
+    //    }
+    //    else
+    //    {
+    //        throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+    //    }
+    //}
 
     public DateTime GetDateTime(int row, int column)
     {
@@ -816,20 +689,26 @@ public class RawTable
             return DateTime.Now;
         }
 
-        if (colType[column] == "DateTime")
+        if (_colType[column] == "DateTime")
         {
-            return (DateTime)data[column, row];
+            return (DateTime)_data[column, row];
         }
-        throw ErrorTip(row, column);
+        else
+        {
+            throw new Exception("Error Format set: " + row.ToString() + " Columns: " + column.ToString() + ". Excel Type: " + _colType[column] + " . Code read Type : " + _data[column, row].GetType());
+        }
     }
 
+    void ClearData()
+    {
+        _data = null;
+    }
     bool CheckRowCol(int row, int col)
     {
-        if (row < 0 || row >= rowNum || col < 0 || col >= colNum)
+        if (row < 0 || row >= _nRows || col < 0 || col >= _nColumns)
         {
             throw new Exception("Wrong row or column !" + " Row: " + row.ToString() + " Columns: " + col.ToString());
         }
         return true;
     }
-    #endregion
 }

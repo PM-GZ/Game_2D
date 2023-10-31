@@ -3,12 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-[CanEditMultipleObjects, CustomEditor(typeof(UiLoopScroll))]
-public class UiLoopScrollInspector : Editor
+[CanEditMultipleObjects, CustomEditor(typeof(UiCircleScroll))]
+public class UiCircleScrollInspector : Editor
 {
-    private UiLoopScroll mScroll;
+    private UiCircleScroll mScroll;
     private SerializedProperty content;
-    private SerializedProperty Padding;
+    private SerializedProperty cellSize;
+    private SerializedProperty padding;
     private SerializedProperty axis;
     private SerializedProperty radius;
     private SerializedProperty autoResetPose;
@@ -17,7 +18,8 @@ public class UiLoopScrollInspector : Editor
     private void OnEnable()
     {
         content = serializedObject.FindProperty("Content");
-        Padding = serializedObject.FindProperty("Padding");
+        cellSize = serializedObject.FindProperty("CellSize");
+        padding = serializedObject.FindProperty("Padding");
         axis = serializedObject.FindProperty("Axis");
         radius = serializedObject.FindProperty("Radius");
         autoResetPose = serializedObject.FindProperty("AutoResetPose");
@@ -26,12 +28,13 @@ public class UiLoopScrollInspector : Editor
 
     public override void OnInspectorGUI()
     {
-        mScroll = target as UiLoopScroll;
+        mScroll = target as UiCircleScroll;
         serializedObject.Update();
 
         EditorGUILayout.PropertyField(content, new GUIContent("Content"));
+        EditorGUILayout.PropertyField(cellSize, new GUIContent("CellSize"));
+        EditorGUILayout.PropertyField(padding, new GUIContent("Padding"));
         EditorGUILayout.PropertyField(axis, new GUIContent("Axis"));
-        EditorGUILayout.PropertyField(Padding, new GUIContent("Padding"));
         radius.floatValue = EditorGUILayout.FloatField("Radius", radius.floatValue);
         autoResetPose.boolValue = EditorGUILayout.Toggle("AutoResetPose", autoResetPose.boolValue);
         autoResetPoseSpeed.floatValue = EditorGUILayout.FloatField("AutoResetPoseSpeed", autoResetPoseSpeed.floatValue);

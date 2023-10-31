@@ -1,9 +1,10 @@
-using System.IO;
+using System;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using OfficeOpenXml;
 
 public struct ExcelData
 {
@@ -14,182 +15,104 @@ public struct ExcelData
 }
 
 
-public class ExportTableEditor
+public static class ExportTableEditor
 {
-    private static Dictionary<string, List<ExcelData>> _ExcelDataDict = new();
-    private static StringBuilder _RepeatTableTip = new();
+    const string SERVER_PATH = "ServerData/";
+    private static string ConfigFileName = "Config.xlsx";
+    private static string TableSheetName = "Tables";
+    private static string TextSheetName = "Texts";
+    private static string KeywordSheetName = "Keywords";
+    private static string ConfigFilePath = "Assets/EditorAssets/Tables/";
+
+    private static SynchronizationContext mMainThreadSynContext;
+    private static List<(string tableName, long elapsedTime)> mExportList = new();
+    public static event Action CompletedCallback;
 
     [MenuItem("导表", menuItem = "Tools/导表")]
     private static void Start()
     {
-        _ExcelDataDict.Clear();
+        var encrypt_path = Constent.BUILTIN_PATH;
+        var unencrypt_path = SERVER_PATH;
+        AssetDatabase.DisallowAutoRefresh();
 
-        var fileInfo = new FileInfo($"{Constent.TABLE_CONFIG_PATH}/MainTable.xlsx");
-        GetAllExcel(new ExcelPackage(fileInfo));
+        EditorApplication.CallbackFunction displayProgress = ExportTableProgress;
+        EditorApplication.update += displayProgress;
 
-        if (_RepeatTableTip.Length > 0)
+        Task.Run(() =>
         {
-            EditorUtility.DisplayDialog("错误", _RepeatTableTip.ToString(), "确认");
-            return;
-        }
-
-        ReadExcels();
-        AssetDatabase.Refresh();
-    }
-
-    private static void GetAllExcel(ExcelPackage excel)
-    {
-        var sheet = excel.Workbook.Worksheets["Tables"];
-        for (int i = 2; i <= sheet.Dimension.Rows; i++)
-        {
-            if (TableUtility.IsRowEmpty(sheet, i, i)) continue;
-
-            var excelData = new ExcelData()
+            try
             {
-                tableName = sheet.GetValue<string>(i, 1),
-                sheetName = sheet.GetValue<string>(i, 2),
-                outputPath = sheet.GetValue<string>(i, 3),
-                className = sheet.GetValue<string>(i, 4),
-            };
-
-            if (!_ExcelDataDict.ContainsKey(excelData.tableName))
-            {
-                _ExcelDataDict.Add(excelData.tableName, new());
+                PacketEditor.UnloadAll();
+                ExportTable(encrypt_path, unencrypt_path, ExportErrorCallback, ExportCompleteCallback, ExportProgressCallback);
+                TABLE.UnloadAll();
+                PacketEditor.UnloadAll();
+                OnExportOver(true, displayProgress);
             }
-            _ExcelDataDict[excelData.tableName].Add(excelData);
-        }
-        excel.Dispose();
-    }
-
-    private static StringBuilder _ClassSBuilder = new();
-    private static void ReadExcels()
-    {
-        foreach (var excel in _ExcelDataDict)
-        {
-            foreach (var excelData in excel.Value)
+            catch (Exception e)
             {
-                string file = GetExcel(excelData.tableName);
-                if (file == null) continue;
-                FileInfo fileInfo = new FileInfo(file);
-                using var excelPkg = new ExcelPackage(fileInfo);
-
-                var sheet = excelPkg.Workbook.Worksheets[excelData.sheetName];
-                AddClassHead(excelData.className);
-                AddClassField(excelData.sheetName, fileInfo.FullName);
-                AddStructData(sheet);
-                AddClassConstructor(excelData.className);
-                AddClassParseDataFunc(sheet);
-                _ClassSBuilder.Append("\n}");
-
-                CreateClassFile(excelData);
-                _ClassSBuilder.Length = 0;
+                Debug.LogError(e);
+                OnExportOver(true, displayProgress);
             }
-        }
+        });
     }
 
-    private static string GetExcel(string tableName)
+    private static void ExportTableProgress()
     {
-        string[] files = Directory.GetFiles($"{Constent.TABLE_CONFIG_PATH}", $"*xlsx", SearchOption.AllDirectories);
-        foreach (var item in files)
+        int curExportCount = ExportTableUtil.GetExportCount();
+        int maxExportCount = ExportTableUtil.GetMaxTableCount();
+        EditorUtility.DisplayProgressBar("导表", $"进度：{curExportCount}/{maxExportCount}", (float)curExportCount / maxExportCount);
+    }
+
+    private static void ExportTable(string encrypt_path, string unencrypt_path, Action<string, Exception> errorCallback, Action completeCallback, Action<string, long> progressCallback)
+    {
+        LocalTablesExporter.ExportSettings exportSettings = new LocalTablesExporter.ExportSettings(ConfigFileName, TableSheetName, TextSheetName, KeywordSheetName, ConfigFilePath, encrypt_path, unencrypt_path, errorCallback, completeCallback, progressCallback);
+
+        Task.WaitAll(LocalTablesExporter.ExporterTables(exportSettings));
+    }
+
+    private static void ExportErrorCallback(string errorMessage, Exception exception)
+    {
+        mMainThreadSynContext.Send(new SendOrPostCallback((obj) =>
         {
-            if (Equals(Path.GetFileNameWithoutExtension(item), tableName))
-            {
-                return item;
-            }
-        }
-        return null;
+            EditorUtility.DisplayDialog("Error", errorMessage, "确定");
+        }), null);
+        Debug.LogError(exception);
     }
 
-    private static void AddClassHead(string className)
+    private static void ExportCompleteCallback()
     {
-        _ClassSBuilder.Append($"using System;\n");
-        _ClassSBuilder.Append($"using System.Collections.Generic;\n\n\n");
-
-        _ClassSBuilder.Append($"public class {className} : TableData\n");
-        _ClassSBuilder.Append("{");
-        _ClassSBuilder.Append("\n\t");
-    }
-
-    private static void AddClassField(string sheetName, string filePath)
-    {
-        filePath = filePath.Replace('\\', '/');
-        filePath = filePath.Replace(Application.dataPath, "Assets");
-        _ClassSBuilder.Append($"public readonly string filePath = \"{filePath}\";");
-        _ClassSBuilder.Append($"\n\tpublic readonly string sheetName = \"{sheetName}\";");
-        _ClassSBuilder.Append("\n\t");
-        _ClassSBuilder.Append($"public Dictionary<uint, Data> dataDict;\n\n");
-    }
-
-    private static void AddStructData(ExcelWorksheet sheet)
-    {
-        _ClassSBuilder.Append("\n\t[Serializable]");
-        _ClassSBuilder.Append("\n\tpublic struct Data\n\t{");
-        for (int j = 1; j <= sheet.Dimension.Columns; j++)
+        StringBuilder exportElapsedTimeList = new StringBuilder();
+        long totalDuration = 0;
+        mExportList.Sort((a, b) =>
         {
-            var field = sheet.GetValue(2, j);
-            var type = sheet.GetValue(3, j);
-            _ClassSBuilder.Append($"\n\t\tpublic {type} {field};");
-        }
-        _ClassSBuilder.Append("\n\t}\n\n");
-    }
-
-    private static void AddClassConstructor(string className)
-    {
-        _ClassSBuilder.Append($"\tpublic {className}()\n\t{{");
-        _ClassSBuilder.Append("\n\t\tif(rawTable == null)");
-        _ClassSBuilder.Append("\n\t\t{");
-        _ClassSBuilder.Append("\n\t\t\trawTable = new RawTable();");
-        _ClassSBuilder.Append("\n\t\t}");
-        _ClassSBuilder.Append("\n\t\trawTable.ReadTable(filePath, sheetName);");
-        _ClassSBuilder.Append("\n\t\tParseData();");
-        _ClassSBuilder.Append("\n\t}\n");
-    }
-
-    private static void AddClassParseDataFunc(ExcelWorksheet sheet)
-    {
-        _ClassSBuilder.Append("\n\tprivate void ParseData()");
-        _ClassSBuilder.Append("\n\t{");
-        _ClassSBuilder.Append("\n\t\tdataDict = new(rawTable.rowNum - 3);");
-        _ClassSBuilder.Append("\n\t\tfor (int i = 0; i < rawTable.rowNum - 3; i++)\n\t\t{");
-        _ClassSBuilder.Append("\n\t\t\tData data = new();\n\t\t\t");
-
-        string key = "";
-        for (int j = 1; j <= sheet.Dimension.Columns; j++)
+            return (int)(b.elapsedTime - a.elapsedTime);
+        });
+        for (int i = 0; i < mExportList.Count; i++)
         {
-            if (j == 1)
-            {
-                key = sheet.GetValue(2, j).ToString();
-            }
-            var field = sheet.GetValue(2, j);
-            var type = sheet.GetValue(3, j).ToString();
-
-            int subIndex = type.StartsWith('u') ? 2 : 1;
-            string func = type[..subIndex].ToUpper() + type[subIndex..];
-
-            if (func.EndsWith("[][]"))
-            {
-                func = func.Replace("[][]", "Array2");
-            }
-            else if (func.EndsWith("[]"))
-            {
-                func = func.Replace("[]", "Array");
-            }
-
-            _ClassSBuilder.Append($"data.{field} = rawTable.Get{func}(i, {j - 1});\n\t\t\t");
+            exportElapsedTimeList.Append($"耗时排序{i}: {mExportList[i].tableName} 导出时间: {mExportList[i].elapsedTime / 1000f}s\n");
+            totalDuration += mExportList[i].elapsedTime;
         }
-        _ClassSBuilder.Append($"dataDict.Add(data.{key}, data);");
-        _ClassSBuilder.Append("\n\t\t}");
-        _ClassSBuilder.Append("\n\t\trawTable = null;");
-        _ClassSBuilder.Append("\n\t}");
+        exportElapsedTimeList.Append($"\n总耗时: {totalDuration / 1000f}s\n");
+        Debug.Log(exportElapsedTimeList.ToString());
     }
 
-    private static void CreateClassFile(ExcelData excelData)
+    private static void ExportProgressCallback(string tableName, long elapsedTimeMilliseconds)
     {
-        string path = $"{excelData.outputPath}";
-        if (!Directory.Exists(path))
+        mExportList.Add(ValueTuple.Create(tableName, elapsedTimeMilliseconds));
+    }
+
+    private static void OnExportOver(bool isSuccess, EditorApplication.CallbackFunction DisplayeProgressBarAction)
+    {
+        mMainThreadSynContext.Send(new SendOrPostCallback((obj) =>
         {
-            Directory.CreateDirectory(path);
-        }
-        File.WriteAllText($"{path}{excelData.className}.cs", _ClassSBuilder.ToString());
+            string title = isSuccess ? "导表成功" : "导表失败";
+            EditorApplication.update -= DisplayeProgressBarAction;
+            EditorUtility.DisplayProgressBar(title, "正在刷新资源目录", 1.0f);
+            AssetDatabase.Refresh();
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.AllowAutoRefresh();
+            Debug.Log(title);
+            CompletedCallback?.Invoke();
+        }), null);
     }
 }

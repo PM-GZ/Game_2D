@@ -11,12 +11,15 @@ public class UiCycleScroll : UiBaseScroll
     public RectTransform Viewport { get => _Scroll.viewport; }
 
 
+    protected int mCurMinIndex, mCurMaxIndex;
     private Vector3 mPreContentPos;
 
     public override void InitScroll()
     {
         base.InitScroll();
 
+        mCurMinIndex = 0;
+        mCurMaxIndex = transform.childCount - 1;
         _Scroll.onValueChanged.AddListener(OnScrollValueChanged);
     }
 
@@ -172,7 +175,6 @@ public class UiCycleScroll : UiBaseScroll
         }
         else
         {
-            CalculateRowAndColnumCount();
             InitContentRect();
             InitCellPosition();
         }
@@ -199,39 +201,6 @@ public class UiCycleScroll : UiBaseScroll
     {
         Content.anchorMin = min;
         Content.anchorMax = max;
-    }
-
-    private void CalculateRowAndColnumCount()
-    {
-        float width = rectTransform.rect.size.x;
-        float height = rectTransform.rect.size.y;
-
-        if (Axis == GridLayoutGroup.Axis.Vertical)
-        {
-            mColumnCount = AxisCount;
-
-            if (mScrollData.DataCount > mColumnCount)
-                mRowCount = mScrollData.DataCount / mColumnCount + (mScrollData.DataCount % mColumnCount == 0 ? 0 : 1);
-        }
-        else if (Axis == GridLayoutGroup.Axis.Horizontal)
-        {
-            mRowCount = AxisCount;
-
-            if (mScrollData.DataCount > mRowCount)
-                mColumnCount = mScrollData.DataCount / mRowCount + (mScrollData.DataCount % mRowCount == 0 ? 0 : 1);
-        }
-        else
-        {
-            if (CellSize.x + Spacing.x <= 0)
-                mRowCount = int.MaxValue;
-            else
-                mRowCount = Mathf.Max(1, Mathf.FloorToInt((width - Padding.horizontal + Spacing.x + 0.001f) / (CellSize.x + Spacing.x)));
-
-            if (CellSize.y + Spacing.y <= 0)
-                mColumnCount = int.MaxValue;
-            else
-                mColumnCount = Mathf.Max(1, Mathf.FloorToInt((height - Padding.vertical + Spacing.y + 0.001f) / (CellSize.y + Spacing.y)));
-        }
     }
 
     private void InitCellPosition()

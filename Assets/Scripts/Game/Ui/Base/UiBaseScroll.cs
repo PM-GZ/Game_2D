@@ -26,13 +26,12 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
 
     protected const int DEFAULT_MAX_CELL_COUNT = 30;
     protected Vector2 CellHalfSize { get => CellSize / 2; }
-    protected List<UiBaseItem> mCellList;
+    protected List<UiBaseListItem> mCellList;
     protected int mRowCount, mColumnCount;
 
     protected Transform mParent;
     protected bool mAxisHorizontal;
     protected CycleScrollData mScrollData;
-    protected int mCurMinIndex, mCurMaxIndex;
     protected Vector2 mDelta;
 
 
@@ -53,7 +52,7 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
     }
 
 
-    public void SetCycleCellGroup<T>(CycleScrollData data) where T : UiBaseItem
+    public void SetCycleCellGroup<T>(CycleScrollData data) where T : UiBaseListItem
     {
         mScrollData = data;
         CalculateCellCount();
@@ -73,8 +72,6 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
         {
             data.CellCount = data.DataCount > data.CellCount ? data.CellCount : data.DataCount;
         }
-        mCurMinIndex = 0;
-        mCurMaxIndex = data.CellCount - 1;
     }
 
     private void ClearCells()
@@ -88,12 +85,12 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
         mCellList?.Clear();
     }
 
-    protected void CreateAllCell<T>() where T : UiBaseItem
+    protected void CreateAllCell<T>() where T : UiBaseListItem
     {
-        mCellList ??= new List<UiBaseItem>();
-        for (int i = 0; i < mCurMaxIndex + 1; i++)
+        mCellList ??= new List<UiBaseListItem>();
+        for (int i = 0; i < mScrollData.CellCount; i++)
         {
-            var cell = UiUtility.CreateItem<T>(Content) as UiBaseItem;
+            var cell = UiUtility.CreateItem<T>(Content) as UiBaseListItem;
             mCellList.Add(cell);
             mScrollData.OnCellCreate?.Invoke(i);
         }
@@ -103,7 +100,8 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
     public virtual void InitScroll()
     {
         mAxisHorizontal = Axis == GridLayoutGroup.Axis.Horizontal;
-        mCellList = GetComponentsInChildren<UiBaseItem>().ToList();
+        mCellList = GetComponentsInChildren<UiBaseListItem>().ToList();
+        CalculateRowAndColnumCount();
         SetLayoutHorizontal();
         SetLayoutVertical();
     }
@@ -124,6 +122,39 @@ public class UiBaseScroll : UiBaseBasic, IBeginDragHandler, IDragHandler, IEndDr
             rect.anchorMin = min;
             rect.anchorMax = max;
             rect.sizeDelta = CellSize;
+        }
+    }
+
+    private void CalculateRowAndColnumCount()
+    {
+        float width = rectTransform.rect.size.x;
+        float height = rectTransform.rect.size.y;
+
+        if (Axis == GridLayoutGroup.Axis.Vertical)
+        {
+            mColumnCount = AxisCount;
+
+            if (mScrollData.DataCount > mColumnCount)
+                mRowCount = mScrollData.DataCount / mColumnCount + (mScrollData.DataCount % mColumnCount == 0 ? 0 : 1);
+        }
+        else if (Axis == GridLayoutGroup.Axis.Horizontal)
+        {
+            mRowCount = AxisCount;
+
+            if (mScrollData.DataCount > mRowCount)
+                mColumnCount = mScrollData.DataCount / mRowCount + (mScrollData.DataCount % mRowCount == 0 ? 0 : 1);
+        }
+        else
+        {
+            if (CellSize.x + Spacing.x <= 0)
+                mRowCount = int.MaxValue;
+            else
+                mRowCount = Mathf.Max(1, Mathf.FloorToInt((width - Padding.horizontal + Spacing.x + 0.001f) / (CellSize.x + Spacing.x)));
+
+            if (CellSize.y + Spacing.y <= 0)
+                mColumnCount = int.MaxValue;
+            else
+                mColumnCount = Mathf.Max(1, Mathf.FloorToInt((height - Padding.vertical + Spacing.y + 0.001f) / (CellSize.y + Spacing.y)));
         }
     }
 

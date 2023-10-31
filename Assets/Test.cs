@@ -11,7 +11,7 @@ public class Test : MonoBehaviour
         scroll.SetCycleCellGroup<UiSuppliesListItem>(new UiCycleScroll.CycleScrollData
         {
             DataCount = 20,
-            CellCount = 5
+            CellCount = 10
         });
     }
 

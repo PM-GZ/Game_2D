@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class UiUtility
 {
-    public static T CreateItem<T>(Transform parent = null) where T : UiBaseItem
+    public static T CreateItem<T>(Transform parent = null) where T : UiBaseListItem
     {
         var name = typeof(T).Name;
         var prefab = uAsset.LoadAsset<GameObject>(name);
@@ -13,7 +13,7 @@ public static class UiUtility
         return item.GetComponent<T>();
     }
 
-    public static List<T> CreateItems<T>(int count, Transform parent = null) where T : UiBaseItem
+    public static List<T> CreateItems<T>(int count, Transform parent = null) where T : UiBaseListItem
     {
         var list = new List<T>();
         for (int i = 0; i < count; i++)

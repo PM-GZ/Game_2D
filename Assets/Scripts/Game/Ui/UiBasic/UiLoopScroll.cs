@@ -1,25 +1,20 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using DG.Tweening;
 
 
 
-
 public class UiLoopScroll : UiBaseScroll
 {
-    [Range(0, 360)] public float AngleRange;
-    public float Radius;
-    public bool AutoResetPose;
-    [SerializeField] public float AutoResetPoseSpeed;
+    public float AutoResetPoseSpeed;
 
-    private float mAngle;
-    private List<RectTransform> mSortList = new();
-    private Vector3[] mInitPosArray;
-    private float mMoveAngle;
-    private Tween mTween;
+
+    private int mDisplayCellIndex, mDisplayDataIndex;
+    private float mMinRect, mMaxRect;
+    private Vector2[] mInitCellPosArray;
+    private Tweener mTween;
     private Coroutine mAutoPoseCoroutine;
 
 
@@ -36,7 +31,7 @@ public class UiLoopScroll : UiBaseScroll
     {
         base.OnBeginDrag(eventData);
         mTween?.Kill();
-        if(mAutoPoseCoroutine != null)
+        if (mAutoPoseCoroutine != null)
         {
             StopCoroutine(mAutoPoseCoroutine);
         }
@@ -45,124 +40,244 @@ public class UiLoopScroll : UiBaseScroll
     public override void OnDrag(PointerEventData eventData)
     {
         base.OnDrag(eventData);
-        mMoveAngle += (mAxisHorizontal ? mDelta.x : mDelta.y) / Radius;
-        Move();
+        OnScrollValueChanged();
     }
 
     public override void OnEndDrag(PointerEventData eventData)
     {
         base.OnEndDrag(eventData);
-
-        if (!AutoResetPose) return;
-
-        float delta = mAxisHorizontal ? mDelta.x : mDelta.y;
-        mTween = DOTween.To(MoveBuffer, delta, 0, 0.3f).OnComplete(AutoRestPose).SetLink(gameObject);
+        float delta = (mAxisHorizontal ? mDelta.x : mDelta.y);
+        float time = Mathf.Abs(delta / 100);
+        mTween = DOTween.To(MoveBuffer, delta / 200, 0, time).OnComplete(AutoRestPose).SetLink(gameObject);
     }
 
     private void MoveBuffer(float a)
     {
-        mMoveAngle += a / Radius;
-        Move();
-    }
-
-    public override void InitScroll()
-    {
-        base.InitScroll();
-
-        mInitPosArray = new Vector3[transform.childCount];
-        InitCellRect(Vector2.one / 2, Vector2.one / 2);
-        foreach (var item in mCellList)
-        {
-            mSortList.Add(item.rectTransform);
-        }
-        mAngle = AngleRange / transform.childCount * Mathf.Deg2Rad;
-        Move();
-        SetInitPosArray();
+        OnScrollValueChanged();
     }
 
     private void AutoRestPose()
     {
         var last = transform.GetChild(transform.childCount - 1);
-        float delta = -(mAxisHorizontal ? last.localPosition.x : last.localPosition.y) / Radius;
-        mAutoPoseCoroutine = StartCoroutine(StartAutoReset(delta));
+        mAutoPoseCoroutine = StartCoroutine(StartAutoReset());
     }
 
-    private IEnumerator StartAutoReset(float delta)
+    private IEnumerator StartAutoReset()
     {
-        float remainDelta = delta;
-        while (true)
+        var cell = transform.GetChild(mDisplayCellIndex);
+        while (!CheckCellPosDrawNearZero(cell))
         {
-            mMoveAngle += delta * Time.deltaTime * AutoResetPoseSpeed;
-            remainDelta -= delta * Time.deltaTime * AutoResetPoseSpeed;
-            Move();
-            if (delta < 0 && remainDelta >= 0 || delta > 0 && remainDelta <= 0)
+            for (int i = 0; i < transform.childCount; i++)
             {
-                break;
+                var child = transform.GetChild(i);
+                child.localPosition = Vector2.MoveTowards(child.localPosition, mInitCellPosArray[i], Time.deltaTime * 60);
             }
             yield return null;
         }
         for (int i = 0; i < transform.childCount; i++)
         {
-            transform.GetChild(i).localPosition = mInitPosArray[i];
-            mScrollData.OnCellMove?.Invoke(transform.childCount - 1 - i);
+            transform.GetChild(i).localPosition = mInitCellPosArray[i];
         }
         mAutoPoseCoroutine = null;
     }
 
-    private void SetInitPosArray()
+    private bool CheckCellPosDrawNearZero(Transform cell)
     {
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            mInitPosArray[i] = transform.GetChild(i).localPosition;
-        }
-    }
-
-    private void Move()
-    {
-        SetCellPos();
-        SetCellSibling();
-    }
-
-    private void SetCellPos()
-    {
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            var cell = mCellList[i].rectTransform;
-            cell.localPosition = GetCellPos(i);
-            float scale = Mathf.Cos(i * mAngle + mMoveAngle) * Radius;
-            scale = (scale + Radius) / (2 * Radius) * (1 - 0.5f) + 0.5f;
-            cell.localScale = Vector3.one * scale;
-        }
-    }
-
-    private Vector3 GetCellPos(int index)
-    {
-        Vector3 pos = Vector3.zero;
-        float x = Mathf.Sin(index * mAngle + mMoveAngle) * Radius;
         if (mAxisHorizontal)
         {
-            pos.x = x;
+            if (cell.localPosition.x >= -0.01f && cell.localPosition.x <= 0.01f)
+                return true;
         }
         else
         {
-            pos.y = x;
+            if (cell.localPosition.y >= -0.01f && cell.localPosition.y <= 0.01f)
+                return true;
         }
-        return pos;
+        return false;
     }
 
-    private void SetCellSibling()
+    public override void InitScroll()
     {
-        mSortList.Sort((l, r) =>
+        base.InitScroll();
+        mInitCellPosArray = new Vector2[transform.childCount];
+        mDisplayDataIndex = transform.childCount / 2;
+        InitCellRect(Vector2.one / 2, Vector2.one / 2);
+        InitCellPosition();
+        mMinRect = transform.GetChild(0).localPosition.x;
+        mMaxRect = transform.GetChild(transform.childCount - 1).localPosition.x;
+    }
+
+    private void OnScrollValueChanged()
+    {
+        mDelta.x = Mathf.Clamp(mDelta.x, -CellHalfSize.x, CellHalfSize.x);
+        mDelta.y = Mathf.Clamp(mDelta.x, -CellHalfSize.y, CellHalfSize.y);
+        if (Axis == GridLayoutGroup.Axis.Horizontal)
         {
-            if (l.localScale.z < r.localScale.z)
-                return -1;
-            if (l.localScale.z > r.localScale.z)
-                return 1;
-            return 0;
-        });
-        for (int i = 0; i < mSortList.Count; i++)
-        {
-            mSortList[i].SetSiblingIndex(i);
+            MoveCells(new Vector2(mDelta.x, 0));
+            if (mDelta.x < 0)
+            {
+                CellMoveToRight();
+            }
+            else if (mDelta.x > 0)
+            {
+                CellMoveToLeft();
+            }
         }
+        else if (Axis == GridLayoutGroup.Axis.Vertical)
+        {
+            MoveCells(new Vector2(0, mDelta.y));
+            if (mDelta.y < 0)
+            {
+                CellMoveToTop();
+            }
+            else if (mDelta.y > 0)
+            {
+                CellMoveToBottom();
+            }
+        }
+    }
+
+    private void MoveCells(Vector2 delta)
+    {
+        foreach (var item in mCellList)
+        {
+            item.rectTransform.anchoredPosition += delta;
+        }
+    }
+
+    private void CellMoveToRight()
+    {
+        for (int i = 0; i < mRowCount; i++)
+        {
+            var rect = Content.GetChild(0) as RectTransform;
+            if (rect.anchoredPosition.x < mMinRect)
+            {
+                CellAsLastSibling(rect);
+            }
+        }
+    }
+
+    private void CellMoveToLeft()
+    {
+        for (int i = 0; i < mRowCount; i++)
+        {
+            var rect = Content.GetChild(transform.childCount - 1) as RectTransform;
+            if (rect.anchoredPosition.x > mMaxRect)
+            {
+                CellAsFirstSibling(rect);
+            }
+        }
+    }
+
+    private void CellMoveToBottom()
+    {
+        for (int i = 0; i < mColumnCount; i++)
+        {
+            var rect = Content.GetChild(0).transform as RectTransform;
+            CellAsLastSibling(rect);
+        }
+    }
+
+    private void CellMoveToTop()
+    {
+        for (int i = 0; i < mColumnCount; i++)
+        {
+            var rect = Content.GetChild(mCellList.Count - 1) as RectTransform;
+            CellAsFirstSibling(rect);
+        }
+    }
+
+    private void CellAsLastSibling(RectTransform rect)
+    {
+        ++mDisplayDataIndex;
+        ++mDisplayCellIndex;
+        CheckDisplayIndex();
+        Vector2 pos = rect.anchoredPosition;
+        if (mAxisHorizontal)
+        {
+            pos.x = (transform.GetChild(transform.childCount - 1) as RectTransform).anchoredPosition.x + CellSize.x + Spacing.x;
+        }
+        else
+        {
+
+        }
+        rect.anchoredPosition = pos;
+        rect.SetAsLastSibling();
+        mScrollData.OnCellMove?.Invoke(mDisplayDataIndex);
+    }
+
+    private void CellAsFirstSibling(RectTransform rect)
+    {
+        --mDisplayDataIndex;
+        --mDisplayCellIndex;
+        CheckDisplayIndex();
+        Vector2 pos = rect.anchoredPosition;
+        if (mAxisHorizontal)
+        {
+            pos.x = (transform.GetChild(0) as RectTransform).anchoredPosition.x - CellSize.x - Spacing.x;
+        }
+        else
+        {
+
+        }
+        rect.anchoredPosition = pos;
+        rect.SetAsFirstSibling();
+        mScrollData.OnCellMove?.Invoke(mDisplayDataIndex);
+    }
+
+    private void CheckDisplayIndex()
+    {
+        if (mDisplayDataIndex < 0)
+        {
+            mDisplayDataIndex = mScrollData.DataCount - 1;
+        }
+        else if (mDisplayDataIndex >= mScrollData.DataCount)
+        {
+            mDisplayDataIndex = 0;
+        }
+
+        if (mDisplayCellIndex < 0)
+        {
+            mDisplayCellIndex = transform.childCount - 1;
+        }
+        else if (mDisplayCellIndex >= transform.childCount)
+        {
+            mDisplayCellIndex = 0;
+        }
+    }
+
+    private void InitCellPosition()
+    {
+        int index = -mDisplayDataIndex;
+        for (int i = 0; i < mCellList.Count; i++)
+        {
+            var pos = GetCellPosition(index);
+            var rect = mCellList[i].rectTransform;
+            rect.anchoredPosition = pos;
+            index++;
+            mInitCellPosArray[i] = pos;
+        }
+    }
+
+    public Vector2 GetCellPosition(int index)
+    {
+        Vector2 pos = Vector2.zero;
+        if (Axis == GridLayoutGroup.Axis.Horizontal)
+        {
+            int row = index % mRowCount;
+            int column = index / mRowCount;
+
+            pos.x = column * CellSize.x + column * Spacing.x + Padding.left;
+            pos.y = -(row * CellSize.y + row * Spacing.y + Padding.top);
+        }
+        else if (Axis == GridLayoutGroup.Axis.Vertical)
+        {
+            int row = index / mColumnCount;
+            int column = index % mColumnCount;
+
+            pos.x = column * CellSize.x + column * Spacing.x + Padding.left;
+            pos.y = -(row * CellSize.y + row * Spacing.y + Padding.top);
+        }
+        return pos;
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 
 
-public class UiBaseItem : UiBaseBasic, IPointerClickHandler, IPointerEnterHandler
+public class UiBaseListItem : UiBaseBasic, IPointerClickHandler, IPointerEnterHandler
 {
     public enum ItemType
     {
@@ -12,7 +12,7 @@ public class UiBaseItem : UiBaseBasic, IPointerClickHandler, IPointerEnterHandle
         Info,
     }
 
-    public Action<UiBaseItem, int> onClick;
+    public Action<UiBaseListItem, int> onClick;
     public Action onPointClick;
     public Action onPointEnter;
 
@@ -21,7 +21,7 @@ public class UiBaseItem : UiBaseBasic, IPointerClickHandler, IPointerEnterHandle
     public ItemType itemType { get; private set; } = ItemType.None;
 
 
-    public void Init(int index, Action<UiBaseItem, int> onClick)
+    public void Init(int index, Action<UiBaseListItem, int> onClick)
     {
         _index = index;
         this.onClick = onClick;
