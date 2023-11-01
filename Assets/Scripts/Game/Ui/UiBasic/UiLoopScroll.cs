@@ -15,17 +15,9 @@ public class UiLoopScroll : UiBaseScroll
     private float mMinRect, mMaxRect;
     private Vector2[] mInitCellPosArray;
     private Tweener mTween;
-    private Coroutine mAutoPoseCoroutine;
+    private IEnumerator mAutoPoseCoroutine;
 
 
-    private void OnDestroy()
-    {
-        mTween?.Kill();
-        if (mAutoPoseCoroutine != null)
-        {
-            StopCoroutine(mAutoPoseCoroutine);
-        }
-    }
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
@@ -59,7 +51,8 @@ public class UiLoopScroll : UiBaseScroll
 
     private void AutoRestPose()
     {
-        mAutoPoseCoroutine = StartCoroutine(StartAutoReset());
+        mAutoPoseCoroutine = StartAutoReset();
+        StartEnumerator(mAutoPoseCoroutine);
     }
 
     private IEnumerator StartAutoReset()

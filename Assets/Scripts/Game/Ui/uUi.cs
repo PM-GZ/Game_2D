@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
-
-
-
 
 public enum PanelType
 {
@@ -25,7 +23,7 @@ public class uUi : BaseObject
     private Transform mFixed;
     private Transform mDialog;
     private Transform mTop;
-    public Camera uiCamera { get; private set; }
+    public Camera UiCamera { get; private set; }
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
@@ -34,9 +32,10 @@ public class uUi : BaseObject
 
     public uUi()
     {
-        mCanvas = GameObject.Find("Canvas").GetComponent<Canvas>();
+        InitCanvas();
+        mCanvas = Object.FindObjectOfType<Canvas>();
 
-        uiCamera = mCanvas.transform.Find("UiCamera").GetComponent<Camera>();
+        UiCamera = mCanvas.transform.Find("UiCamera").GetComponent<Camera>();
         mBackground = mCanvas.transform.Find("Backgorund");
         mNormal = mCanvas.transform.Find("Normal");
         mFixed = mCanvas.transform.Find("Fixed");
@@ -44,6 +43,17 @@ public class uUi : BaseObject
         mTop = mCanvas.transform.Find("Top");
 
         InitInputEvent();
+    }
+
+    private void InitCanvas()
+    {
+        var canvas = Resources.Load<GameObject>("Canvas");
+        canvas = Object.Instantiate(canvas, null, false);
+        canvas.name = "Canvas";
+        Object.DontDestroyOnLoad(canvas);
+        var uiCam = canvas.GetComponentInChildren<Camera>();
+        var camData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
+        camData.cameraStack.Add(uiCam);
     }
 
     private void InitInputEvent()
@@ -89,7 +99,7 @@ public class uUi : BaseObject
     #region Get Func
     public Vector3 WorldToScreenPoint(Vector3 worldPostion)
     {
-        return uiCamera.WorldToScreenPoint(worldPostion);
+        return UiCamera.WorldToScreenPoint(worldPostion);
     }
 
     public T GetPanel<T>() where T : BasePanel

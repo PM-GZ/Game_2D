@@ -6,48 +6,54 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.Rendering.Universal;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 
 
+
 [DisallowMultipleComponent]
 public class Main : MonoBehaviour
 {
-    public static Main main { get; private set; }
-    private static bool _initFlag = false;
+#if UNITY_EDITOR
+    [InitializeOnLoadMethod]
+    static void EditorInit()
+    {
+        //TEXT.Init();
+    }
+#else
+
+#endif
+
+
+    private static bool mInitFlag = false;
 
     public static uUi Ui { get; private set; }
     public static GameInput Input { get; private set; }
     public static uScene Scene { get; private set; }
 
 
-    private uState _curState;
-    private Coroutine _stateCoroutine;
-    private List<string> mCatalogs;
+    public uState CurState { get; private set; }
+    private Coroutine mStateCoroutine;
     private long mTotalDownloadSize;
     Assembly mHotUpdateAss;
 
     private void Start()
     {
-        if (_initFlag)
+        if (mInitFlag)
         {
             Destroy(gameObject);
             return;
         }
-        main = this;
         DontDestroyOnLoad(gameObject);
         Init();
+        mInitFlag = true;
     }
 
     private void Init()
     {
-        InitCanvas();
         InitManager();
-
-        _initFlag = true;
     }
 
     private void InitManager()
@@ -57,20 +63,9 @@ public class Main : MonoBehaviour
         Ui = new();
     }
 
-    private void InitCanvas()
-    {
-        var canvas = Resources.Load<GameObject>("Canvas");
-        canvas = Instantiate(canvas, null, false);
-        canvas.name = "Canvas";
-        DontDestroyOnLoad(canvas);
-        var uiCam = canvas.GetComponentInChildren<Camera>();
-        var camData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
-        camData.cameraStack.Add(uiCam);
-    }
-
     private void Update()
     {
-        _curState?.Update();
+        CurState?.Update();
         BaseObject.UpdateAll();
         GameBehaviour.Update();
     }
@@ -98,8 +93,8 @@ public class Main : MonoBehaviour
     private void OnApplicationQuit()
     {
         StopAllCoroutines();
-        _curState?.Quit();
-        _curState = null;
+        CurState?.Quit();
+        CurState = null;
 
         Input.Dispose();
     }
@@ -108,16 +103,16 @@ public class Main : MonoBehaviour
     {
 #if UNITY_EDITOR
         EditorApplication.isPlaying = false;
-# else
+#else
         Application.Quit();
 #endif
     }
 
     public void LoadState(uState state)
     {
-        _curState?.Quit();
-        _curState = state;
-        _stateCoroutine = StartCoroutine(_curState.Enter());
+        CurState?.Quit();
+        CurState = state;
+        mStateCoroutine = StartCoroutine(CurState.Enter());
     }
 
     #region HotUpdate
@@ -128,8 +123,8 @@ public class Main : MonoBehaviour
 
         if (checkHandle.Status == AsyncOperationStatus.Succeeded)
         {
-            mCatalogs = checkHandle.Result;
-            GetDownloadAssets();
+            var catalogs = checkHandle.Result;
+            GetDownloadAssets(catalogs);
         }
         else
         {
@@ -138,15 +133,15 @@ public class Main : MonoBehaviour
         Addressables.Release(checkHandle);
     }
 
-    private async void GetDownloadAssets()
+    private async void GetDownloadAssets(List<string> catalogs)
     {
-        if (mCatalogs == null || mCatalogs.Count == 0)
+        if (catalogs == null || catalogs.Count == 0)
         {
             EnterGame();
             return;
         }
 
-        var catalogsHandle = Addressables.UpdateCatalogs(true, mCatalogs, false);
+        var catalogsHandle = Addressables.UpdateCatalogs(true, catalogs, false);
         await catalogsHandle.Task;
 
         if (catalogsHandle.Status == AsyncOperationStatus.Succeeded)

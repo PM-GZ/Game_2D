@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
+
 public static class TABLE
 {
     static Dictionary<Type, TableData> mTables = new Dictionary<Type, TableData>();
@@ -59,6 +60,7 @@ public class TableData
     protected RawTable mTableData;
 }
 
+
 public class RawTable
 {
     public object[,] _data;
@@ -66,18 +68,11 @@ public class RawTable
     public int _nRows;
     public int _nColumns;
 
-    public void readBinary(string table_name, string packet_name)
+    public void ReadBinary(string table_name, string packet_name)
     {
         ClearData();
-        MemoryStream f;
-        if (Packet.EnableDevelopmentMode)
-        {
-            f = new MemoryStream(PacketEditor.GetFile(packet_name, table_name));
-        }
-        else
-        {
-            f = new MemoryStream(Packet.GetFile(packet_name, table_name));
-        }
+        MemoryStream f = null;
+
         if (f == null)
             return;
 

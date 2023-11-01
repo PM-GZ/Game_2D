@@ -28,7 +28,7 @@ public static class UiUtility
     {
         var root = ui.parent as RectTransform;
         Vector3 targetUiPos = Camera.main.WorldToScreenPoint(target);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(root, targetUiPos, Main.Ui.uiCamera, out var pos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(root, targetUiPos, Main.Ui.UiCamera, out var pos);
         return pos;
     }
 }

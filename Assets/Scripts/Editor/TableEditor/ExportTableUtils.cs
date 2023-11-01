@@ -1,109 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
-using OfficeOpenXml;
 
-public static class ExportTableUtil
+public static class ExportTableUtils
 {
-    private static int exportedCount;
-    private static int maxTablesCount;
-    private static string[] mKeywords;
+    public const string PacketPath = "Builtin/";
 
-    public const string SERVER_CS_DIR = "ExportServerCs";
-    public static readonly string[] TEXT_HEAD = { "CN", "EN", "TCN" };
-    public const string TEXT_TABLE_FILE_NAME = "TEXT_Keys.cs";
+
     public static Dictionary<string, Type> enumTypes = new Dictionary<string, Type>();
 
 
-    public static void Init(string tablesPath, string keywordSheetName, string configTableName)
-    {
-        exportedCount = 0;
-        maxTablesCount = 0;
-        InitKeyword(tablesPath, keywordSheetName, configTableName);
-    }
-
-    private static void InitKeyword(string tablesPath, string keywordSheetName, string configTableName)
-    {
-        var configTables = ReadExcel(tablesPath + "/" + Path.GetFileNameWithoutExtension(configTableName));
-        if (configTables == null)
-        {
-            throw new Exception(tablesPath + "/" + Path.GetFileNameWithoutExtension(configTableName) + "路径为空!");
-        }
-        try
-        {
-            ExcelWorksheet sheet = configTables.Workbook.Worksheets[keywordSheetName];
-            mKeywords = new string[sheet.Dimension.Rows];
-            for (int i = 0; i < sheet.Dimension.Rows; i++)
-            {
-                mKeywords[i] = GetCell(sheet, i, 0);
-            }
-        }
-        catch
-        {
-            throw new Exception("不存在关键字页签:" + keywordSheetName);
-        }
-    }
-
-    public static ExcelPackage ReadExcel(string filePath)
-    {
-        if (!File.Exists(filePath + ".xlsx"))
-        {
-            throw new Exception("文件不存在:" + filePath + ".xlsx");
-        }
-        try
-        {
-            using (Stream stream = File.Open(filePath + ".xlsx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                return new ExcelPackage(stream);
-            }
-        }
-        catch (Exception e)
-        {
-            throw e;
-        }
-    }
-
-    public static bool CheckHead(string Header, List<string> tableHeaders)
-    {
-        if (Header.StartsWith("#")) return true;   //被废弃字段
-        if (!Regex.IsMatch(Header, "^[a-zA-Z_][a-zA-Z0-9_]*$"))
-        {
-            return false;
-        }
-        for (int i = 0; i < mKeywords.Length; i++)
-        {
-            if (Header == mKeywords[i])
-                return false;
-        }
-        for (int i = 0; i < tableHeaders.Count; i++)
-        {
-            if (tableHeaders[i] == Header)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static string GetCell(ExcelWorksheet sheet, int row, int column)
-    {
-        try
-        {
-            string str = sheet.GetValue<string>(row + 1, column + 1);
-
-            if (string.IsNullOrEmpty(str))
-            {
-                str = string.Empty;
-            }
-
-            return str;
-        }
-        catch (Exception e)
-        {
-            throw e;
-        }
-    }
     public static void WriteIntArray(string str, BinaryWriter bw)
     {
         if (string.IsNullOrWhiteSpace(str))
@@ -388,20 +294,5 @@ public static class ExportTableUtil
                 }
             }
         }
-    }
-
-    public static int GetExportCount()
-    {
-        return exportedCount;
-    }
-
-    public static int GetMaxTableCount()
-    {
-        return maxTablesCount;
-    }
-
-    internal static void MaxTablesCount(int count)
-    {
-        maxTablesCount += count;
     }
 }

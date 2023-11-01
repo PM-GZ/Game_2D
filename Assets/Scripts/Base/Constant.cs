@@ -4,9 +4,9 @@ using UnityEngine;
 
 
 
-public static class Constent
+public static class Constant
 {
-    static Constent()
+    static Constant()
     {
         BUILTIN_PATH = "Builtin/";
     }

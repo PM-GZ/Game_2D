@@ -17,17 +17,8 @@ public class UiCircleScroll : UiBaseScroll
     private Vector3[] mInitPosArray;
     private float mMoveAngle;
     private Tween mTween;
-    private Coroutine mAutoPoseCoroutine;
+    private IEnumerator mAutoPoseCoroutine;
 
-
-    private void OnDestroy()
-    {
-        mTween?.Kill();
-        if (mAutoPoseCoroutine != null)
-        {
-            StopCoroutine(mAutoPoseCoroutine);
-        }
-    }
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
@@ -81,7 +72,8 @@ public class UiCircleScroll : UiBaseScroll
     {
         var last = transform.GetChild(transform.childCount - 1);
         float delta = -(mAxisHorizontal ? last.localPosition.x : last.localPosition.y) / Radius;
-        mAutoPoseCoroutine = StartCoroutine(StartAutoReset(delta));
+        mAutoPoseCoroutine = StartAutoReset(delta);
+        StartEnumerator(mAutoPoseCoroutine);
     }
 
     private IEnumerator StartAutoReset(float delta)

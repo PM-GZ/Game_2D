@@ -10,9 +10,9 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 /[Ff]ileData/
-/[Hh]ybridCLRData
-/[Uu]nityElementsSchema
-
+/[Hh]ybridCLRData/
+/[Uu]nityElementsSchema/
+/[Bb]uiltin/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data

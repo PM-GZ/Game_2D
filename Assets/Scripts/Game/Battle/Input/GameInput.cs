@@ -65,7 +65,7 @@ public sealed class GameInput
 
     private void LoadInputAsset()
     {
-        _InputAsset = Resources.Load<InputActionAsset>(Constent.INPUT_SYSTEM_PATH);
+        _InputAsset = Resources.Load<InputActionAsset>(Constant.INPUT_SYSTEM_PATH);
         _GameMap = _InputAsset.FindActionMap(ACTION_MAP_GAMEPLAY);
         _UiMap = _InputAsset.FindActionMap(ACTION_MAP_UI);
     }
