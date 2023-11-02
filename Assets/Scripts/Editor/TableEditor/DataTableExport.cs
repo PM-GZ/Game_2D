@@ -40,6 +40,7 @@ public static class DataTableExport
         GetAllSheet();
         DeleteOldFiles();
         ExportData();
+        PacketUtils.BuildAll();
     }
 
     private static void GetAllSheet()
@@ -82,6 +83,7 @@ public static class DataTableExport
     private static void ExportData()
     {
         int index = 0;
+        long position = 0;
         foreach (var dict in mSheetPathDict)
         {
             var tableData = GetTableData(dict.Key, dict.Value);
@@ -90,10 +92,11 @@ public static class DataTableExport
             string dataName = mConfigTableDatas[index, 4];
             string packetName = mConfigTableDatas[index, 5];
             var packetData = CreatePacket(dict.Key, dict.Value, tableData);
-            var csData = CreateCSFile(dict.Key, dict.Value, className, dataName, packetName, tableData);
+            var csData = CreateCSFile(position, dict.Key, dict.Value, className, dataName, packetName, tableData);
+            PacketUtils.AddFile(packetName, packetData);
             File.WriteAllBytes($"{outPath}{className}.cs", csData);
-            File.WriteAllBytes($"{ExportTableUtils.PacketPath}{packetName}", packetData);
             index++;
+            position += packetData.LongLength;
         }
     }
 
@@ -431,7 +434,7 @@ public static class DataTableExport
         }
     }
 
-    private static byte[] CreateCSFile(string tableName, string sheetName, string className, string dataName, string packetName, TableData tableData)
+    private static byte[] CreateCSFile(long position, string tableName, string sheetName, string className, string dataName, string packetName, TableData tableData)
     {
         var fs = new MemoryStream();
         var sw = new StreamWriter(fs, Encoding.UTF8);
@@ -443,6 +446,7 @@ public static class DataTableExport
         sw.Write("public partial class " + className + " : TableData" + "\n");
         sw.Write("{" + "\n");
         sw.Write("\t" + "public readonly string sFilePath = " + "\"" + dataName + "\";" + "\n");
+        sw.Write("\t" + $"public readonly long Position = {position};\n");
         sw.Write("\t" + "public Dictionary<" + tableData.TypeList[0] + ", tData> mData;" + "\n");
         sw.Write("\t" + "public List<tData> DataList;" + "\n");
         sw.Write("\t" + "public partial struct tData" + "\n");
@@ -544,7 +548,7 @@ public static class DataTableExport
         sw.Write("\t\t" + "{" + "\n");
         sw.Write("\t\t\t" + "mTableData = new RawTable();" + "\n");
         sw.Write("\t\t" + "}" + "\n");
-        sw.Write("\t\t" + $"mTableData.ReadBinary(sFilePath, PACKET_NAME);" + "\n");
+        sw.Write("\t\t" + $"mTableData.ReadBinary(sFilePath, Position, PACKET_NAME);" + "\n");
         sw.Write("\t" + "}" + "\n");
         sw.Write("\t" + "void ParseData()" + "\n");
         sw.Write("\t" + "{" + "\n");

@@ -5,6 +5,7 @@ using UnityEngine;
 public partial class TableRole : TableData
 {
 	public readonly string sFilePath = "tTableRoleData";
+	public readonly long Position = 0;
 	public Dictionary<uint, tData> mData;
 	public List<tData> DataList;
 	public partial struct tData
@@ -46,7 +47,7 @@ public partial class TableRole : TableData
 	{
 		try
 		{
-			PACKET_NAME = "UiPackage.p";
+			PACKET_NAME = "UiTable.p";
 			ReadTable();
 			ParseData();
 		}
@@ -62,7 +63,7 @@ public partial class TableRole : TableData
 		{
 			mTableData = new RawTable();
 		}
-		mTableData.ReadBinary(sFilePath, PACKET_NAME);
+		mTableData.ReadBinary(sFilePath, Position, PACKET_NAME);
 	}
 	void ParseData()
 	{

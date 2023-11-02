@@ -8,6 +8,16 @@ public class Test : MonoBehaviour
 
     void Start()
     {
+        TableGoods goods = new TableGoods();
+
+        foreach (var item in goods.mData)
+        {
+            Debug.Log($"{item.Key} \t {item.Value.ID}");
+            Debug.Log($"{item.Key} \t {item.Value.goodName}");
+            Debug.Log($"{item.Key} \t {item.Value.PrefabName}");
+            Debug.Log($"{item.Key} \t {item.Value.IconPath}");
+        }
+
         scroll.SetCycleCellGroup<UiSuppliesListItem>(new UiCycleScroll.CycleScrollData
         {
             DataCount = 20,

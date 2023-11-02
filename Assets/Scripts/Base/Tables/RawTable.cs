@@ -68,19 +68,18 @@ public class RawTable
     public int _nRows;
     public int _nColumns;
 
-    public void ReadBinary(string table_name, string packet_name)
+    public void ReadBinary(string tableName, long position, string packetName)
     {
         ClearData();
-        MemoryStream f = null;
+        var bytes = PacketUtils.GetPacket(packetName);
+        if (bytes == null) return;
 
-        if (f == null)
-            return;
+        MemoryStream f = new MemoryStream(bytes);
+        f.Position = position;
 
         BinaryReader br = new BinaryReader(f, Encoding.UTF8);
-
-        int columns = 0, rows = 0;
-        rows = br.ReadInt32();
-        columns = br.ReadInt32();
+        int rows = br.ReadInt32();
+        int columns = br.ReadInt32();
 
         _nRows = rows;
         _nColumns = columns;
