@@ -13,7 +13,7 @@ public class ExportTableEditor
     private const string ConfigName = "Config";
     private const string TableName = "Tables";
     private const string TextSheetName = "Texts";
-    private const string KeywordSheetName = "keyword";
+    private const string KeywordSheetName = "Keyword";
 
     private static SynchronizationContext mMainThread;
     private static ExcelPackage mConfig;
@@ -42,6 +42,8 @@ public class ExportTableEditor
     {
         mConfig = GetConfigFile(ConfigFilePath + ConfigName);
         DataTableExport.ExportDataTable(ConfigFilePath, mConfig);
+        TextTableExport.ExportTextTable(ConfigFilePath, mConfig);
+        PacketUtils.BuildAll();
     }
 
     public static ExcelPackage GetConfigFile(string tablePath)

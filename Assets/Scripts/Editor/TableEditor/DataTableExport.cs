@@ -31,7 +31,7 @@ public static class DataTableExport
     private static string mTablePath;
     private static ExcelWorksheet mTable;
     private static string[,] mConfigTableDatas;
-    private static Dictionary<string, string> mSheetPathDict;
+    private static Dictionary<string, List<string>> mSheetPathDict;
 
     public static void ExportDataTable(string tablePath, ExcelPackage config)
     {
@@ -40,7 +40,6 @@ public static class DataTableExport
         GetAllSheet();
         DeleteOldFiles();
         ExportData();
-        PacketUtils.BuildAll();
     }
 
     private static void GetAllSheet()
@@ -61,7 +60,11 @@ public static class DataTableExport
                 mConfigTableDatas[i, j] = value;
             }
             string sheetPath = $"{mTablePath}{mConfigTableDatas[i, 0]}";
-            mSheetPathDict.Add(sheetPath, mConfigTableDatas[i, 1]);
+            if (!mSheetPathDict.ContainsKey(sheetPath))
+            {
+                mSheetPathDict.Add(sheetPath, new());
+            }
+            mSheetPathDict[sheetPath].Add(mConfigTableDatas[i, 1]);
         }
     }
 
@@ -86,17 +89,20 @@ public static class DataTableExport
         long position = 0;
         foreach (var dict in mSheetPathDict)
         {
-            var tableData = GetTableData(dict.Key, dict.Value);
-            string className = mConfigTableDatas[index, 2];
-            string outPath = mConfigTableDatas[index, 3];
-            string dataName = mConfigTableDatas[index, 4];
-            string packetName = mConfigTableDatas[index, 5];
-            var packetData = CreatePacket(dict.Key, dict.Value, tableData);
-            var csData = CreateCSFile(position, dict.Key, dict.Value, className, dataName, packetName, tableData);
-            PacketUtils.AddFile(packetName, packetData);
-            File.WriteAllBytes($"{outPath}{className}.cs", csData);
-            index++;
-            position += packetData.LongLength;
+            foreach (var item in dict.Value)
+            {
+                var tableData = GetTableData(dict.Key, item);
+                string className = mConfigTableDatas[index, 2];
+                string outPath = mConfigTableDatas[index, 3];
+                string dataName = mConfigTableDatas[index, 4];
+                string packetName = mConfigTableDatas[index, 5];
+                var packetData = CreatePacket(dict.Key, item, tableData);
+                var csData = CreateCSFile(position, dict.Key, item, className, dataName, packetName, tableData);
+                PacketUtils.AddFile(packetName, packetData);
+                File.WriteAllBytes($"{outPath}{className}.cs", csData);
+                index++;
+                position += packetData.LongLength;
+            }
         }
     }
 

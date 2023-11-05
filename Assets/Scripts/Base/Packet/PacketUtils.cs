@@ -35,6 +35,10 @@ public class PacketUtils
 
     public static void BuildAll()
     {
+        if (!Directory.Exists(Constant.BUILTIN_PATH))
+        {
+            Directory.CreateDirectory(Constant.BUILTIN_PATH);
+        }
         var stream = new MemoryStream();
         var writer = new BinaryWriter(stream);
         foreach (var dic in mBuildDataDict)
