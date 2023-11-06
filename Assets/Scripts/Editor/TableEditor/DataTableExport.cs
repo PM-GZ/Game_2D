@@ -98,7 +98,7 @@ public static class DataTableExport
                 string packetName = mConfigTableDatas[index, 5];
                 var packetData = CreatePacket(dict.Key, item, tableData);
                 var csData = CreateCSFile(position, dict.Key, item, className, dataName, packetName, tableData);
-                PacketUtils.AddFile(packetName, packetData);
+                PacketUtils.AddFile(packetName, dataName, packetData);
                 File.WriteAllBytes($"{outPath}{className}.cs", csData);
                 index++;
                 position += packetData.LongLength;

@@ -5,31 +5,57 @@ using System.Collections.Generic;
 
 public class PacketUtils
 {
-    private struct BuildData
+    private class Packet
     {
-        public string FileName;
-        public byte[] Data;
-    }
-
-
-    private static volatile Dictionary<string, List<BuildData>> mBuildDataDict = new();
-    private static Dictionary<string, byte[]> mPacketDict = new();
-
-    public static void AddFile(string fileName, byte[] data)
-    {
-        lock (mBuildDataDict)
+        public struct BuildData
         {
-            var buildData = new BuildData
+            public string FileName;
+            public byte[] Data;
+        }
+
+        private List<BuildData> mBuilds = new List<BuildData>();
+
+        public void Add(string fileName, byte[] data)
+        {
+            var buildData = new Packet.BuildData
             {
                 FileName = fileName,
                 Data = data
             };
+            mBuilds.Add(buildData);
+        }
 
-            if (!mBuildDataDict.ContainsKey(fileName))
+        public byte[] Build()
+        {
+            using (var steam = new MemoryStream())
             {
-                mBuildDataDict.Add(fileName, new List<BuildData>());
+                using (var write = new BinaryWriter(steam))
+                {
+                    for (int i = 0; i < mBuilds.Count; i++)
+                    {
+                        var bytes = mBuilds[i];
+                        write.Write(bytes.Data.Length);
+                        write.Write(bytes.Data);
+                    }
+                    return steam.ToArray();
+                }
             }
-            mBuildDataDict[fileName].Add(buildData);
+        }
+    }
+
+
+    private static volatile Dictionary<string, Packet> mBuildDataDict = new();
+    private static Dictionary<string, byte[]> mPacketDict = new();
+
+    public static void AddFile(string packetName, string fileName, byte[] data)
+    {
+        lock (mBuildDataDict)
+        {
+            if (!mBuildDataDict.ContainsKey(packetName))
+            {
+                mBuildDataDict.Add(packetName, new Packet());
+            }
+            mBuildDataDict[packetName].Add(fileName, data);
         }
     }
 
@@ -39,19 +65,11 @@ public class PacketUtils
         {
             Directory.CreateDirectory(Constant.BUILTIN_PATH);
         }
-        var stream = new MemoryStream();
-        var writer = new BinaryWriter(stream);
+
         foreach (var dic in mBuildDataDict)
         {
-            foreach (var data in dic.Value)
-            {
-                writer.Write(data.Data);
-            }
-            File.WriteAllBytes(Constant.BUILTIN_PATH + dic.Key, stream.ToArray());
-            stream.Position = 0;
+            File.WriteAllBytes(Constant.BUILTIN_PATH + dic.Key, dic.Value.Build());
         }
-        stream.Close();
-        writer.Close();
     }
 
     public static byte[] GetPacket(string packetName)

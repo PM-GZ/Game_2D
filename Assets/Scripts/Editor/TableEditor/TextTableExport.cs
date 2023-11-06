@@ -8,26 +8,25 @@ public static class TextTableExport
 {
     private struct TableData
     {
-        public Dictionary<string, LanguageData> TableDatas;
+        public List<string> HeadList;
+        public List<string> KeyList;
+        public List<string> LanguageList;
         public int Row;
         public int Column;
 
-        public TableData(Dictionary<string, LanguageData> tableDatas, int row, int column)
+        public TableData(List<string> headList, List<string> keyList, List<string> languageList, int row, int column)
         {
-            TableDatas = tableDatas;
+            HeadList = headList;
+            KeyList = keyList;
+            LanguageList = languageList;
             Row = row;
             Column = column;
         }
     }
 
-    private struct LanguageData
-    {
-        public string CN;
-        public string EN;
-    }
-
-    private static string PacketName = "Language.p";
-    private static string OutCodePath = "Assets/Scripts/Game/Tables/";
+    private static string OutCodePath;
+    private static string PacketName;
+    private static string[] LANGUAGES = { "CN", "EN" };
     private static string mTablePath;
     private static ExcelWorksheet mTable;
     private static string[,] mConfigTableDatas;
@@ -39,6 +38,9 @@ public static class TextTableExport
     {
         mTablePath = tablePath;
         mTable = config.Workbook.Worksheets["Texts"];
+
+        OutCodePath = ExportTableEditor.GetCellData(mTable, 0, 1);
+        PacketName = ExportTableEditor.GetCellData(mTable, 1, 1);
 
         GetAllSheet();
         DeleteOldFiles();
@@ -62,15 +64,12 @@ public static class TextTableExport
                 mConfigTableDatas[i, j] = value;
             }
 
-            if (mConfigTableDatas[i, 2].ToLower().Equals("true"))
+            string sheetPath = $"{mTablePath}{mConfigTableDatas[i, 0]}";
+            if (!mSheetPathDict.ContainsKey(sheetPath))
             {
-                string sheetPath = $"{mTablePath}{mConfigTableDatas[i, 0]}";
-                if (!mSheetPathDict.ContainsKey(sheetPath))
-                {
-                    mSheetPathDict.Add(sheetPath, new());
-                }
-                mSheetPathDict[sheetPath].Add(mConfigTableDatas[i, 1]);
+                mSheetPathDict.Add(sheetPath, new());
             }
+            mSheetPathDict[sheetPath].Add(mConfigTableDatas[i, 1]);
         }
     }
 
@@ -86,18 +85,32 @@ public static class TextTableExport
     private static void ExportData()
     {
         int index = 0;
+        List<TableData> compileTable = new List<TableData>();
+        List<TableData> noCompileTable = new List<TableData>();
         foreach (var dict in mSheetPathDict)
         {
             foreach (var item in dict.Value)
             {
                 TableData tableData = GetTableData(dict.Key, item);
-                byte[] packetData = CreatePacket(tableData);
-                byte[] csData = CreateCSFile(tableData);
-                PacketUtils.AddFile(PacketName, packetData);
-                File.WriteAllBytes($"{OutCodePath}TEXT_Keys.cs", csData);
+                if (tableData.Row == 0) continue;
+
+                if (mConfigTableDatas[index, 2].ToLower().Equals("true"))
+                {
+                    compileTable.Add(tableData);
+                }
+                else
+                {
+                    noCompileTable.Add(tableData);
+                }
+
                 index++;
             }
         }
+
+        CreatePacket(compileTable, noCompileTable);
+
+        byte[] csData = CreateCSFile(compileTable);
+        File.WriteAllBytes($"{OutCodePath}TEXT_Keys.cs", csData);
     }
 
     private static TableData GetTableData(string tablePath, string sheetName)
@@ -114,74 +127,88 @@ public static class TextTableExport
         }
 
         List<string> repeatKeys = new List<string>();
-        TableData data = new TableData(new(), 0, 0);
+        TableData data = new TableData(new(), new(), new(), 0, 0);
         data.Column = sheet.Dimension.Columns;
+
         for (int i = 0; i < sheet.Dimension.Rows; i++)
         {
-            if (i > 1)
+            if (i > 0)
             {
-                if (string.IsNullOrEmpty(ExportTableEditor.GetCellData(sheet, i + 1, 0)))
+                if (string.IsNullOrEmpty(ExportTableEditor.GetCellData(sheet, i, 0)))
                     break;
 
                 data.Row++;
             }
 
-            string key = string.Empty;
-            var languageData = new LanguageData();
             for (int j = 0; j < sheet.Dimension.Columns; j++)
             {
-                string value = ExportTableEditor.GetCellData(sheet, i + 1, j);
-                if (j == 0)
+                string value = ExportTableEditor.GetCellData(sheet, i, j);
+                if (i == 0)
                 {
-                    if (repeatKeys.Contains(value))
+                    if (j > 0)
                     {
-                        throw new Exception($"转换表:{tablePath}[{sheetName}] 第{i}行{j}列失败! \n ID: {value} 重复！");
+                        data.HeadList.Add(value);
                     }
-                    repeatKeys.Add(value);
-                    key = value;
                 }
-                else if (j == 1)
+                else
                 {
-                    languageData.CN = value;
-                }
-                else if (j == 2)
-                {
-                    languageData.EN = value;
+                    if (j == 0)
+                    {
+                        if (repeatKeys.Contains(value))
+                        {
+                            throw new Exception($"转换表:{tablePath}[{sheetName}] 第{i}行{j}列失败! \n ID: {value} 重复！");
+                        }
+                        repeatKeys.Add(value);
+                        data.KeyList.Add(value);
+                    }
+                    else
+                    {
+                        data.LanguageList.Add(value);
+                    }
                 }
             }
-            data.TableDatas.Add(key, languageData);
         }
         return data;
     }
 
-    private static byte[] CreatePacket(TableData tableData)
+    private static void CreatePacket(List<TableData> compileTable, List<TableData> noCompileTable)
     {
-        int ColNum = tableData.Column;
+        for (int i = 0; i < LANGUAGES.Length; i++)
+        {
+            byte[] data = CreatePacket(i, compileTable, noCompileTable);
+            PacketUtils.AddFile(PacketName, LANGUAGES[i] + ".bytes", data);
+        }
+    }
 
+    private static byte[] CreatePacket(int languageIndex, List<TableData> compileTable, List<TableData> noCompileTable)
+    {
         MemoryStream fs = new MemoryStream();
         BinaryWriter bw = new BinaryWriter(fs, Encoding.UTF8);
-        try
-        {
-            bw.Write(tableData.Row);
-            bw.Write(ColNum);
 
-            foreach (var item in tableData.TableDatas)
-            {
-                bw.Write(Convert.ToString(item.Key));
-                bw.Write(Convert.ToString(item.Value.CN));
-                bw.Write(Convert.ToString(item.Value.EN));
-            }
-        }
-        catch (Exception ex)
+        for (int i = 0; i < compileTable.Count; i++)
         {
-            throw ex;
+            string key = compileTable[i].KeyList[languageIndex];
+            string value = compileTable[i].LanguageList[languageIndex];
+
+            bw.Write(key);
+            bw.Write(value);
         }
+
+        for (int i = 0; i < noCompileTable.Count; i++)
+        {
+            string key = noCompileTable[i].KeyList[languageIndex];
+            string value = noCompileTable[i].LanguageList[languageIndex];
+
+            bw.Write(key);
+            bw.Write(value);
+        }
+
         fs.Close();
         bw.Close();
         return fs.ToArray();
     }
 
-    private static byte[] CreateCSFile(TableData tableData)
+    private static byte[] CreateCSFile(List<TableData> tableDatas)
     {
         var fs = new MemoryStream();
         var sw = new StreamWriter(fs, Encoding.UTF8);
@@ -189,9 +216,18 @@ public static class TextTableExport
 
         sw.Write("public static class TEXT_Keys\n");
         sw.Write("{\n");
-        foreach (var item in tableData.TableDatas)
+        foreach (var data in tableDatas)
         {
-            sw.Write($"public static string {item.Key} {{ get => TEXT.GetText(\"{item.Key}\"); }}\n");
+            foreach (var key in data.KeyList)
+            {
+                sw.Write($"\t/// <summary>\n");
+                for (int i = 0; i < data.HeadList.Count; i++)
+                {
+                    sw.Write($"\t/// {data.HeadList[i]}: {data.LanguageList[i]}\n");
+                }
+                sw.Write($"\t/// </summary>\n");
+                sw.Write($"\tpublic static string {key} {{ get => TEXT.GetText(\"{key}\"); }}\n");
+            }
         }
         sw.Write("}\n");
 
