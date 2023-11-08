@@ -4,54 +4,51 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-public static class TextTableExport
+public class TextTableExport
 {
     private struct TableData
     {
-        public List<string> HeadList;
         public List<string> KeyList;
-        public List<string> LanguageList;
-        public int Row;
-        public int Column;
+        public List<string[]> CompileTexts;
+        public List<string[]> NoCompileTexts;
 
-        public TableData(List<string> headList, List<string> keyList, List<string> languageList, int row, int column)
+        public TableData(List<string> headList, List<string[]> keyList, List<string[]> languageList)
         {
-            HeadList = headList;
-            KeyList = keyList;
-            LanguageList = languageList;
-            Row = row;
-            Column = column;
+            KeyList = headList;
+            CompileTexts = keyList;
+            NoCompileTexts = languageList;
         }
     }
 
-    private static string OutCodePath;
-    private static string PacketName;
-    private static string[] LANGUAGES = { "CN", "EN" };
-    private static string mTablePath;
-    private static ExcelWorksheet mTable;
-    private static string[,] mConfigTableDatas;
-    private static Dictionary<string, List<string>> mSheetPathDict;
+    private string OutCodePath;
+    private string PacketName;
+    private string[] LANGUAGES = { "CN", "EN" };
+    private string mTablePath;
+    private ExcelWorksheet mTable;
+    private string[,] mConfigTableDatas;
+    private Dictionary<string, List<int>> mSheetPathDict;
 
 
+    List<string[]> compileTable = new List<string[]>();
+    List<string[]> noCompileTable = new List<string[]>();
 
-    public static void ExportTextTable(string tablePath, ExcelPackage config)
+    public TextTableExport(string tablePath, string sheetName, ExcelPackage config)
     {
         mTablePath = tablePath;
-        mTable = config.Workbook.Worksheets["Texts"];
+        mTable = config.Workbook.Worksheets[sheetName];
 
         OutCodePath = ExportTableEditor.GetCellData(mTable, 0, 1);
         PacketName = ExportTableEditor.GetCellData(mTable, 1, 1);
 
         GetAllSheet();
         DeleteOldFiles();
-        ExportData();
     }
 
-    private static void GetAllSheet()
+    private void GetAllSheet()
     {
-        mSheetPathDict = new Dictionary<string, List<string>>();
+        mSheetPathDict = new Dictionary<string, List<int>>();
         mConfigTableDatas = new string[mTable.Dimension.Rows - 3, mTable.Dimension.Columns];
-        for (int i = 0; i < mTable.Dimension.Rows; i++)
+        for (int i = 0; i < mTable.Dimension.Rows - 3; i++)
         {
             for (int j = 0; j < mTable.Dimension.Columns; j++)
             {
@@ -64,16 +61,16 @@ public static class TextTableExport
                 mConfigTableDatas[i, j] = value;
             }
 
-            string sheetPath = $"{mTablePath}{mConfigTableDatas[i, 0]}";
-            if (!mSheetPathDict.ContainsKey(sheetPath))
+            if (!mSheetPathDict.ContainsKey(mConfigTableDatas[i, 0]))
             {
-                mSheetPathDict.Add(sheetPath, new());
+                mSheetPathDict.Add(mConfigTableDatas[i, 0], new());
             }
-            mSheetPathDict[sheetPath].Add(mConfigTableDatas[i, 1]);
+            mSheetPathDict[mConfigTableDatas[i, 0]].Add(i);
         }
+        ExportTableEditor.SetMaxCount(mSheetPathDict.Count);
     }
 
-    private static void DeleteOldFiles()
+    private void DeleteOldFiles()
     {
         string path = $"{mTablePath}TEXT_Keys.cs";
         if (File.Exists(path))
@@ -82,113 +79,96 @@ public static class TextTableExport
         }
     }
 
-    private static void ExportData()
+    public void ExportData()
     {
-        int index = 0;
-        List<TableData> compileTable = new List<TableData>();
-        List<TableData> noCompileTable = new List<TableData>();
         foreach (var dict in mSheetPathDict)
         {
-            foreach (var item in dict.Value)
+            ExportTableEditor.RegisterExportTask(() =>
             {
-                TableData tableData = GetTableData(dict.Key, item);
-                if (tableData.Row == 0) continue;
+                TableData tableData = GetTableData(dict.Key);
 
-                if (mConfigTableDatas[index, 2].ToLower().Equals("true"))
+                foreach (var text in tableData.CompileTexts)
                 {
-                    compileTable.Add(tableData);
+                    compileTable.Add(text);
                 }
-                else
+                foreach (var text in tableData.NoCompileTexts)
                 {
-                    noCompileTable.Add(tableData);
+                    noCompileTable.Add(text);
                 }
-
-                index++;
-            }
+            }, dict.Key);
         }
-
-        CreatePacket(compileTable, noCompileTable);
-
-        byte[] csData = CreateCSFile(compileTable);
-        File.WriteAllBytes($"{OutCodePath}TEXT_Keys.cs", csData);
     }
 
-    private static TableData GetTableData(string tablePath, string sheetName)
+    private TableData GetTableData(string excelName)
     {
-        var table = ExportTableEditor.GetConfigFile(tablePath);
-        var sheet = table.Workbook.Worksheets[sheetName];
-        if (sheet == null)
-        {
-            throw new Exception($"{tablePath}中找不到：{sheetName}");
-        }
-        if (sheet.Dimension.Rows < 1)
-        {
-            throw new Exception("文件格式不对:" + tablePath + " Sheet:" + sheetName);
-        }
+        string filePath = mTablePath + excelName;
+        var table = ExportTableEditor.GetConfigFile(filePath);
+        var sheetList = mSheetPathDict[excelName];
+        TableData tableData = new TableData(new(), new(), new());
 
-        List<string> repeatKeys = new List<string>();
-        TableData data = new TableData(new(), new(), new(), 0, 0);
-        data.Column = sheet.Dimension.Columns;
-
-        for (int i = 0; i < sheet.Dimension.Rows; i++)
+        foreach (var i in sheetList)
         {
-            if (i > 0)
+            string sheetName = mConfigTableDatas[i, 1];
+            bool isCompile = Convert.ToBoolean(mConfigTableDatas[i, 2]);
+            var sheet = table.Workbook.Worksheets[sheetName];
+            if (sheet == null)
             {
-                if (string.IsNullOrEmpty(ExportTableEditor.GetCellData(sheet, i, 0)))
-                    break;
-
-                data.Row++;
+                throw new Exception($"{excelName}中找不到：{sheetName}");
+            }
+            if (sheet.Dimension.Rows < 1)
+            {
+                throw new Exception("文件格式不对:" + excelName + " Sheet:" + sheetName);
             }
 
-            for (int j = 0; j < sheet.Dimension.Columns; j++)
+            for (int row = 1; row < sheet.Dimension.Rows; row++)
             {
-                string value = ExportTableEditor.GetCellData(sheet, i, j);
-                if (i == 0)
+                string key = ExportTableEditor.GetCellData(sheet, row, 0);
+                if (string.IsNullOrEmpty(key))
                 {
-                    if (j > 0)
-                    {
-                        data.HeadList.Add(value);
-                    }
+                    throw new Exception($"转换表:{excelName}[{sheetName}] 第{row}行失败! \nID为空");
                 }
                 else
                 {
-                    if (j == 0)
+                    var data = new string[LANGUAGES.Length + 1];
+                    data[0] = key;
+                    for (int j = 0; j < LANGUAGES.Length; j++)
                     {
-                        if (repeatKeys.Contains(value))
-                        {
-                            throw new Exception($"转换表:{tablePath}[{sheetName}] 第{i}行{j}列失败! \n ID: {value} 重复！");
-                        }
-                        repeatKeys.Add(value);
-                        data.KeyList.Add(value);
+                        string value = ExportTableEditor.GetCellData(sheet, row, j + 1);
+                        data[j + 1] = value;
+                    }
+                    if (isCompile)
+                    {
+                        tableData.CompileTexts.Add(data);
                     }
                     else
                     {
-                        data.LanguageList.Add(value);
+                        tableData.NoCompileTexts.Add(data);
                     }
                 }
             }
         }
-        return data;
+
+        return tableData;
     }
 
-    private static void CreatePacket(List<TableData> compileTable, List<TableData> noCompileTable)
+    private void CreatePacket()
     {
         for (int i = 0; i < LANGUAGES.Length; i++)
         {
-            byte[] data = CreatePacket(i, compileTable, noCompileTable);
+            byte[] data = CreatePacket(i);
             PacketUtils.AddFile(PacketName, LANGUAGES[i] + ".bytes", data);
         }
     }
 
-    private static byte[] CreatePacket(int languageIndex, List<TableData> compileTable, List<TableData> noCompileTable)
+    private byte[] CreatePacket(int languageIndex)
     {
         MemoryStream fs = new MemoryStream();
         BinaryWriter bw = new BinaryWriter(fs, Encoding.UTF8);
 
         for (int i = 0; i < compileTable.Count; i++)
         {
-            string key = compileTable[i].KeyList[languageIndex];
-            string value = compileTable[i].LanguageList[languageIndex];
+            string key = compileTable[i][0];
+            string value = compileTable[i][languageIndex + 1];
 
             bw.Write(key);
             bw.Write(value);
@@ -196,8 +176,8 @@ public static class TextTableExport
 
         for (int i = 0; i < noCompileTable.Count; i++)
         {
-            string key = noCompileTable[i].KeyList[languageIndex];
-            string value = noCompileTable[i].LanguageList[languageIndex];
+            string key = noCompileTable[i][0];
+            string value = noCompileTable[i][languageIndex + 1];
 
             bw.Write(key);
             bw.Write(value);
@@ -208,32 +188,45 @@ public static class TextTableExport
         return fs.ToArray();
     }
 
-    private static byte[] CreateCSFile(List<TableData> tableDatas)
+    public void CreateAll()
     {
+        CreatePacket();
+        CreateCSFile();
+    }
+
+    private void CreateCSFile()
+    {
+
         var fs = new MemoryStream();
         var sw = new StreamWriter(fs, Encoding.UTF8);
 
-
         sw.Write("public static class TEXT_Keys\n");
         sw.Write("{\n");
-        foreach (var data in tableDatas)
+        for (int i = 0; i < compileTable.Count; i++)
         {
-            foreach (var key in data.KeyList)
-            {
-                sw.Write($"\t/// <summary>\n");
-                for (int i = 0; i < data.HeadList.Count; i++)
-                {
-                    sw.Write($"\t/// {data.HeadList[i]}: {data.LanguageList[i]}\n");
-                }
-                sw.Write($"\t/// </summary>\n");
-                sw.Write($"\tpublic static string {key} {{ get => TEXT.GetText(\"{key}\"); }}\n");
-            }
+            string key = compileTable[i][0];
+            string cn = compileTable[i][1].Replace("\n", "\n\t///");
+            string en = compileTable[i][2].Replace("\n", "\n\t///");
+
+            sw.Write($"\t/// <summary>");
+            sw.Write("\n");
+            sw.Write($"\t/// cn: {cn}");
+            sw.Write("\n");
+            sw.Write($"\t/// en: {en}");
+            sw.Write("\n");
+            sw.Write($"\t/// </summary>");
+            sw.Write("\n");
+
+            sw.Write("\tpublic static string " + key + "\n");
+            sw.Write("\t{\n");
+            sw.Write("\t\tget { return TEXT.GetText(\"" + key + "\"); }\n");
+            sw.Write("\t}\n");
         }
         sw.Write("}\n");
 
 
         sw.Close();
         fs.Close();
-        return fs.ToArray();
+        File.WriteAllBytes($"{OutCodePath}TEXT_Keys.cs", fs.ToArray());
     }
 }

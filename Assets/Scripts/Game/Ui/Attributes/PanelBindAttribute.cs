@@ -5,10 +5,10 @@ using System;
 public class PanelBind : Attribute
 {
     public string name;
-    public PanelType panelType;
+    public PanelLevel panelType;
     public bool forever;
 
-    public PanelBind(string name, PanelType panelType, bool forever = false)
+    public PanelBind(string name, PanelLevel panelType, bool forever = false)
     {
         this.name = name;
         this.panelType = panelType;

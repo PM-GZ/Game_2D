@@ -2,7 +2,7 @@ using TMPro;
 
 
 
-[PanelBind("DialogErrorTip", PanelType.Dialog)]
+[PanelBind("DialogErrorTip", PanelLevel.Dialog)]
 public class DialogErrorTip : BasePanel
 {
     [UiBind("ErrorTip")] private TMP_Text _errorTip;

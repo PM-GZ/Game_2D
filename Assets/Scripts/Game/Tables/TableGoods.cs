@@ -5,7 +5,6 @@ using UnityEngine;
 public partial class TableGoods : TableData
 {
 	public readonly string sFilePath = "tTableItemData";
-	public readonly long Position = 67;
 	public Dictionary<uint, tData> mData;
 	public List<tData> DataList;
 	public partial struct tData
@@ -55,7 +54,7 @@ public partial class TableGoods : TableData
 		{
 			mTableData = new RawTable();
 		}
-		mTableData.ReadBinary(sFilePath, Position, PACKET_NAME);
+		mTableData.ReadBinary(sFilePath, PACKET_NAME);
 	}
 	void ParseData()
 	{

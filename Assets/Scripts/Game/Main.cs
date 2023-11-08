@@ -20,7 +20,7 @@ public class Main : MonoBehaviour
     [InitializeOnLoadMethod]
     static void EditorInit()
     {
-        //TEXT.Init();
+        TEXT.Init("CN");
     }
 #else
 

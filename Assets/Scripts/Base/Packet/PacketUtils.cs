@@ -1,7 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
-
-
+using System;
 
 public class PacketUtils
 {
@@ -34,6 +33,7 @@ public class PacketUtils
                     for (int i = 0; i < mBuilds.Count; i++)
                     {
                         var bytes = mBuilds[i];
+                        write.Write(bytes.FileName);
                         write.Write(bytes.Data.Length);
                         write.Write(bytes.Data);
                     }
@@ -46,6 +46,13 @@ public class PacketUtils
 
     private static volatile Dictionary<string, Packet> mBuildDataDict = new();
     private static Dictionary<string, byte[]> mPacketDict = new();
+
+
+    public static void ClearAll()
+    {
+        mBuildDataDict.Clear();
+        mPacketDict.Clear();
+    }
 
     public static void AddFile(string packetName, string fileName, byte[] data)
     {
@@ -68,6 +75,10 @@ public class PacketUtils
 
         foreach (var dic in mBuildDataDict)
         {
+            if(File.Exists(Constant.BUILTIN_PATH + dic.Key))
+            {
+                File.Delete(Constant.BUILTIN_PATH + dic.Key);
+            }
             File.WriteAllBytes(Constant.BUILTIN_PATH + dic.Key, dic.Value.Build());
         }
     }
@@ -83,7 +94,7 @@ public class PacketUtils
             }
             else
             {
-                return null;
+                throw new Exception($"未找到{packetName}包，请检查资源");
             }
         }
         return mPacketDict[packetName];

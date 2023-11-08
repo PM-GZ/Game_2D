@@ -68,16 +68,34 @@ public class RawTable
     public int _nRows;
     public int _nColumns;
 
-    public void ReadBinary(string tableName, long position, string packetName)
+
+
+    public void ReadBinary(string tableName, string packetName)
     {
         ClearData();
         var bytes = PacketUtils.GetPacket(packetName);
         if (bytes == null) return;
 
         MemoryStream f = new MemoryStream(bytes);
-        f.Position = position;
-
         BinaryReader br = new BinaryReader(f, Encoding.UTF8);
+        while (br.BaseStream.Position < bytes.Length)
+        {
+            string fileName = br.ReadString();
+            int length = br.ReadInt32();
+            if (fileName.Equals(tableName))
+            {
+                GetData(br);
+
+                f.Close();
+                br.Close();
+                return;
+            }
+            br.BaseStream.Position += length;
+        }
+    }
+
+    private void GetData(BinaryReader br)
+    {
         int rows = br.ReadInt32();
         int columns = br.ReadInt32();
 
@@ -369,8 +387,6 @@ public class RawTable
                 throw new Exception("Unrecognized type! type = " + type);
             }
         }
-        f.Close();
-        br.Close();
     }
 
     public string GetString(int row, int column)

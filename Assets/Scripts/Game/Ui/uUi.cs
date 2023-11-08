@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
-public enum PanelType
+public enum PanelLevel
 {
     Background,
     Normal,
@@ -122,24 +122,24 @@ public class uUi : BaseObject
     #endregion
 
     #region UiHandle Func
-    public GameObject LoadPanelGO(string name, PanelType panelType)
+    public GameObject LoadPanelGO(string name, PanelLevel panelType)
     {
         Transform parent = mNormal;
         switch (panelType)
         {
-            case PanelType.Background:
+            case PanelLevel.Background:
                 parent = mBackground;
                 break;
-            case PanelType.Normal:
+            case PanelLevel.Normal:
                 parent = mNormal;
                 break;
-            case PanelType.Fixed:
+            case PanelLevel.Fixed:
                 parent = mFixed;
                 break;
-            case PanelType.Dialog:
+            case PanelLevel.Dialog:
                 parent = mDialog;
                 break;
-            case PanelType.Top:
+            case PanelLevel.Top:
                 parent = mTop;
                 break;
         }
@@ -151,9 +151,9 @@ public class uUi : BaseObject
 
     private void SetComponent(GameObject panel)
     {
-        var canvas = panel.AddComponent<Canvas>();
-        panel.AddComponent<CanvasGroup>();
-        panel.AddComponent<GraphicRaycaster>();
+        var canvas = panel.GetOrAddComponent<Canvas>();
+        panel.GetOrAddComponent<CanvasGroup>();
+        panel.GetOrAddComponent<GraphicRaycaster>();
 
         canvas.vertexColorAlwaysGammaSpace = true;
         SetSortingOrder(panel.transform, canvas);
@@ -228,4 +228,14 @@ public class uUi : BaseObject
         _foreverPanel.Clear();
     }
     #endregion
+
+    public void ChangedLanguage(string language)
+    {
+        TEXT.Init(language);
+        var texts = Object.FindObjectsOfType<MultiLanguageText>();
+        foreach (var item in texts)
+        {
+            item.ChangedLanguage();
+        }
+    }
 }

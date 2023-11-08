@@ -1,18 +1,27 @@
 ﻿public static class TEXT_Keys
 {
 	/// <summary>
-	/// CN: 继续
-	/// EN: Continue
+	/// cn: 继续
+	/// en: Continue
 	/// </summary>
-	public static string PANEL_MAIN_MENU_CONTINUE { get => TEXT.GetText("PANEL_MAIN_MENU_CONTINUE"); }
+	public static string PANEL_MAIN_MENU_CONTINUE
+	{
+		get { return TEXT.GetText("PANEL_MAIN_MENU_CONTINUE"); }
+	}
 	/// <summary>
-	/// CN: 继续
-	/// EN: Continue
+	/// cn: 加载
+	/// en: Load
 	/// </summary>
-	public static string PANEL_MAIN_MENU_LOAD { get => TEXT.GetText("PANEL_MAIN_MENU_LOAD"); }
+	public static string PANEL_MAIN_MENU_LOAD
+	{
+		get { return TEXT.GetText("PANEL_MAIN_MENU_LOAD"); }
+	}
 	/// <summary>
-	/// CN: 继续
-	/// EN: Continue
+	/// cn: 新游戏
+	/// en: New Game
 	/// </summary>
-	public static string PANEL_MAIN_MENU_NEWGAME { get => TEXT.GetText("PANEL_MAIN_MENU_NEWGAME"); }
+	public static string PANEL_MAIN_MENU_NEWGAME
+	{
+		get { return TEXT.GetText("PANEL_MAIN_MENU_NEWGAME"); }
+	}
 }

@@ -31,4 +31,14 @@ public static class UiUtility
         RectTransformUtility.ScreenPointToLocalPointInRectangle(root, targetUiPos, Main.Ui.UiCamera, out var pos);
         return pos;
     }
+
+    public static T GetOrAddComponent<T>(this GameObject go) where T : Component
+    {
+        T t = go.GetComponent<T>();
+        if (t == null)
+        {
+           t = go.AddComponent<T>();
+        }
+        return t;
+    }
 }

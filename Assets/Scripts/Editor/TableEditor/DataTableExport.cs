@@ -5,7 +5,7 @@ using OfficeOpenXml;
 using System.Text;
 using System.Globalization;
 
-public static class DataTableExport
+public class DataTableExport
 {
     private struct TableData
     {
@@ -28,47 +28,41 @@ public static class DataTableExport
     }
 
 
-    private static string mTablePath;
-    private static ExcelWorksheet mTable;
-    private static string[,] mConfigTableDatas;
-    private static Dictionary<string, List<string>> mSheetPathDict;
+    private string mTablePath;
+    private ExcelWorksheet mTable;
+    private string[,] mConfigTableDatas;
+    private Dictionary<string, List<int>> mSheetPathDict;
 
-    public static void ExportDataTable(string tablePath, ExcelPackage config)
+    public DataTableExport(string tablePath, string sheetName, ExcelPackage config)
     {
         mTablePath = tablePath;
-        mTable = config.Workbook.Worksheets["Tables"];
+        mTable = config.Workbook.Worksheets[sheetName];
         GetAllSheet();
         DeleteOldFiles();
-        ExportData();
     }
 
-    private static void GetAllSheet()
+    private void GetAllSheet()
     {
-        mConfigTableDatas = new string[mTable.Dimension.Rows, mTable.Dimension.Columns];
+        mConfigTableDatas = new string[mTable.Dimension.Rows - 1, mTable.Dimension.Columns];
         mSheetPathDict = new();
-        for (int i = 0; i < mTable.Dimension.Rows; i++)
+        for (int i = 0; i < mTable.Dimension.Rows - 1; i++)
         {
             for (int j = 0; j < mTable.Dimension.Columns; j++)
             {
                 string value = ExportTableEditor.GetCellData(mTable, i + 1, j);
-
-                if (j == 0 && string.IsNullOrEmpty(value))
-                {
-                    return;
-                }
-
                 mConfigTableDatas[i, j] = value;
             }
-            string sheetPath = $"{mTablePath}{mConfigTableDatas[i, 0]}";
+            string sheetPath = $"{mConfigTableDatas[i, 0]}";
             if (!mSheetPathDict.ContainsKey(sheetPath))
             {
                 mSheetPathDict.Add(sheetPath, new());
             }
-            mSheetPathDict[sheetPath].Add(mConfigTableDatas[i, 1]);
+            mSheetPathDict[sheetPath].Add(i);
         }
+        ExportTableEditor.SetMaxCount(mSheetPathDict.Count);
     }
 
-    private static void DeleteOldFiles()
+    private void DeleteOldFiles()
     {
         for (int i = 0; i < mConfigTableDatas.GetLength(0); i++)
         {
@@ -83,32 +77,45 @@ public static class DataTableExport
         }
     }
 
-    private static void ExportData()
+    public void ExportData()
     {
-        int index = 0;
-        long position = 0;
         foreach (var dict in mSheetPathDict)
         {
-            foreach (var item in dict.Value)
+            ExportTableEditor.RegisterExportTask(() =>
             {
-                var tableData = GetTableData(dict.Key, item);
-                string className = mConfigTableDatas[index, 2];
-                string outPath = mConfigTableDatas[index, 3];
-                string dataName = mConfigTableDatas[index, 4];
-                string packetName = mConfigTableDatas[index, 5];
-                var packetData = CreatePacket(dict.Key, item, tableData);
-                var csData = CreateCSFile(position, dict.Key, item, className, dataName, packetName, tableData);
-                PacketUtils.AddFile(packetName, dataName, packetData);
-                File.WriteAllBytes($"{outPath}{className}.cs", csData);
-                index++;
-                position += packetData.LongLength;
-            }
+                DataTableTask(dict);
+            }, dict.Key);
         }
     }
 
-    private static TableData GetTableData(string tablePath, string sheetName)
+    private void DataTableTask(KeyValuePair<string, List<int>> input)
     {
-        var table = ExportTableEditor.GetConfigFile(tablePath);
+        foreach (var index in input.Value)
+        {
+            string tableName = mConfigTableDatas[index, 0];
+            string sheetName = mConfigTableDatas[index, 1];
+            string className = mConfigTableDatas[index, 2];
+            string outCodePath = mConfigTableDatas[index, 3];
+            string dataName = mConfigTableDatas[index, 4];
+            string packetName = mConfigTableDatas[index, 5];
+
+            var tableData = GetTableData(tableName, sheetName);
+            var packetData = CreatePacket(tableName, sheetName, tableData);
+            var csData = CreateCSFile(tableName, sheetName, className, dataName, packetName, tableData);
+            PacketUtils.AddFile(packetName, dataName, packetData);
+
+            string path = $"{outCodePath}{className}.cs";
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            File.WriteAllBytes(path, csData);
+        }
+    }
+
+    private TableData GetTableData(string tablePath, string sheetName)
+    {
+        var table = ExportTableEditor.GetConfigFile(mTablePath + tablePath);
         var sheet = table.Workbook.Worksheets[sheetName];
         if (sheet == null)
         {
@@ -166,7 +173,7 @@ public static class DataTableExport
         return data;
     }
 
-    private static byte[] CreatePacket(string key, string sheetName, TableData tableData)
+    private byte[] CreatePacket(string key, string sheetName, TableData tableData)
     {
         int ColNum = 0;
         for (int i = 0; i < tableData.Column; i++)
@@ -405,7 +412,7 @@ public static class DataTableExport
         return fs.ToArray();
     }
 
-    private static void WriteEnum(string type, int i, BinaryWriter bw, TableData tableData)
+    private void WriteEnum(string type, int i, BinaryWriter bw, TableData tableData)
     {
         if (ExportTableUtils.enumTypes.TryGetValue(type, out var enum_type))
         {
@@ -440,7 +447,7 @@ public static class DataTableExport
         }
     }
 
-    private static byte[] CreateCSFile(long position, string tableName, string sheetName, string className, string dataName, string packetName, TableData tableData)
+    private byte[] CreateCSFile(string tableName, string sheetName, string className, string dataName, string packetName, TableData tableData)
     {
         var fs = new MemoryStream();
         var sw = new StreamWriter(fs, Encoding.UTF8);
@@ -452,7 +459,6 @@ public static class DataTableExport
         sw.Write("public partial class " + className + " : TableData" + "\n");
         sw.Write("{" + "\n");
         sw.Write("\t" + "public readonly string sFilePath = " + "\"" + dataName + "\";" + "\n");
-        sw.Write("\t" + $"public readonly long Position = {position};\n");
         sw.Write("\t" + "public Dictionary<" + tableData.TypeList[0] + ", tData> mData;" + "\n");
         sw.Write("\t" + "public List<tData> DataList;" + "\n");
         sw.Write("\t" + "public partial struct tData" + "\n");
@@ -554,7 +560,7 @@ public static class DataTableExport
         sw.Write("\t\t" + "{" + "\n");
         sw.Write("\t\t\t" + "mTableData = new RawTable();" + "\n");
         sw.Write("\t\t" + "}" + "\n");
-        sw.Write("\t\t" + $"mTableData.ReadBinary(sFilePath, Position, PACKET_NAME);" + "\n");
+        sw.Write("\t\t" + $"mTableData.ReadBinary(sFilePath, PACKET_NAME);" + "\n");
         sw.Write("\t" + "}" + "\n");
         sw.Write("\t" + "void ParseData()" + "\n");
         sw.Write("\t" + "{" + "\n");
