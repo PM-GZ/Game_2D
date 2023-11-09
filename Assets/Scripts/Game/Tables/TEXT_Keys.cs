@@ -24,4 +24,12 @@
 	{
 		get { return TEXT.GetText("PANEL_MAIN_MENU_NEWGAME"); }
 	}
+	/// <summary>
+	/// cn: 测试{0}
+	/// en: test{0}
+	/// </summary>
+	public static string PANEL_TEST
+	{
+		get { return TEXT.GetText("PANEL_TEST"); }
+	}
 }

@@ -73,7 +73,7 @@ public class UiCircleScroll : UiBaseScroll
         var last = transform.GetChild(transform.childCount - 1);
         float delta = -(mAxisHorizontal ? last.localPosition.x : last.localPosition.y) / Radius;
         mAutoPoseCoroutine = StartAutoReset(delta);
-        StartEnumerator(mAutoPoseCoroutine);
+        StartCoroutine(mAutoPoseCoroutine);
     }
 
     private IEnumerator StartAutoReset(float delta)

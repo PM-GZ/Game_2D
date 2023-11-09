@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class UiBaseBasic : MonoBehaviour, IUiBaseBasic
 {
+    public bool UseRedDot;
     public RectTransform rectTransform { get => transform as RectTransform; }
 
     private List<IEnumerator> mCoroutines = new();
@@ -17,13 +18,13 @@ public class UiBaseBasic : MonoBehaviour, IUiBaseBasic
 
     public new void StartCoroutine(IEnumerator e)
     {
-        StartEnumerator(e);
+        mCoroutines.Add(e);
+        base.StartCoroutine(e);
     }
 
-    public void StartEnumerator(IEnumerator e)
+    public void ShowRedDot(bool show)
     {
-        mCoroutines.Add(e);
-        StartCoroutine(e);
+
     }
 
     private void OnDestroy()

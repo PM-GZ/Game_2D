@@ -52,7 +52,7 @@ public class UiLoopScroll : UiBaseScroll
     private void AutoRestPose()
     {
         mAutoPoseCoroutine = StartAutoReset();
-        StartEnumerator(mAutoPoseCoroutine);
+        StartCoroutine(mAutoPoseCoroutine);
     }
 
     private IEnumerator StartAutoReset()

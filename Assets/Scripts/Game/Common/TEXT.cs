@@ -8,9 +8,14 @@ public static class TEXT
     private const string PACKET_NAME = "Languages.p";
     private static Dictionary<string, byte[]> mLanguageDataDict = new();
     private static Dictionary<string, string> mTextDict = new();
+    private static string mCurLanguage;
 
     public static void Init(string language = "CN")
     {
+        if(!string.IsNullOrEmpty(mCurLanguage) && mCurLanguage.Equals(language))
+            return;
+
+        mCurLanguage = language;
         GetData($"{language}.bytes");
     }
 
@@ -27,8 +32,6 @@ public static class TEXT
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
                 InitData(reader, data.Length);
-                stream.Close();
-                reader.Close();
             }
         }
     }
@@ -45,9 +48,7 @@ public static class TEXT
                     var length = reader.ReadInt32();
                     if (name.Equals(fileName))
                     {
-                        mLanguageDataDict.Add(fileName, reader.ReadBytes((int)stream.Position + length));
-                        stream.Close();
-                        reader.Close();
+                        mLanguageDataDict.Add(fileName, reader.ReadBytes(length));
                         return;
                     }
                     reader.BaseStream.Position += length;

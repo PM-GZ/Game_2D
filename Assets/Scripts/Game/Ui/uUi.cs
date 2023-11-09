@@ -111,6 +111,18 @@ public class uUi : BaseObject
         return null;
     }
 
+    public bool TryGetPanel<T>(out BasePanel panel) where T : BasePanel
+    {
+        panel = null;
+        foreach (var item in _panelList)
+        {
+            if (item is not T) continue;
+            panel = item as T;
+            return true;
+        }
+        return false;
+    }
+
     public T GetForeverPanel<T>() where T : BasePanel
     {
         foreach (var panel in _foreverPanel)
