@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -16,7 +15,6 @@ public class BasePanel : BaseObject
 
     public void InitPanel()
     {
-        LoadPanel();
         InitField();
         OnStart();
         if(canvasGroup.alpha == 1)
@@ -25,23 +23,12 @@ public class BasePanel : BaseObject
         }
     }
 
-    private void LoadPanel()
+    public void SetPanelData(GameObject go, bool forever)
     {
-        var type = GetType();
-        var objs = type.GetCustomAttributes(true);
-        if (objs.Length > 0)
-        {
-            var attr = objs[0] as PanelBind;
-
-            gameObject = Main.Ui.LoadPanelGO(attr.name, attr.panelType);
-            transform = gameObject.transform;
-            canvasGroup = gameObject.GetComponent<CanvasGroup>();
-            forever = attr.forever;
-        }
-        else
-        {
-            Debug.LogError($"√ª”–…Ë÷√ [PanelBind]");
-        }
+        gameObject = go;
+        transform = gameObject.transform;
+        canvasGroup = gameObject.GetComponent<CanvasGroup>();
+        this.forever = forever;
     }
 
     private void InitField()

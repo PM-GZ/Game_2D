@@ -6,10 +6,22 @@ using UnityEngine;
 
 public class UiBaseBasic : MonoBehaviour, IUiBaseBasic
 {
-    public bool UseRedDot;
     public RectTransform rectTransform { get => transform as RectTransform; }
 
     private List<IEnumerator> mCoroutines = new();
+
+    private void Start()
+    {
+    }
+
+    private void OnDestroy()
+    {
+        foreach (var cor in mCoroutines)
+        {
+            StopCoroutine(cor);
+        }
+        mCoroutines.Clear();
+    }
 
     public void Show(bool show)
     {
@@ -20,19 +32,5 @@ public class UiBaseBasic : MonoBehaviour, IUiBaseBasic
     {
         mCoroutines.Add(e);
         base.StartCoroutine(e);
-    }
-
-    public void ShowRedDot(bool show)
-    {
-
-    }
-
-    private void OnDestroy()
-    {
-        foreach (var cor in mCoroutines)
-        {
-            StopCoroutine(cor);
-        }
-        mCoroutines.Clear();
     }
 }

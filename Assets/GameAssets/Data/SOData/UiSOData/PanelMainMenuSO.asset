@@ -16,3 +16,4 @@ MonoBehaviour:
   Level: 0
   Forever: 0
   RedDotType: 0
+  Bgm: {fileID: 0}

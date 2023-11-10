@@ -27,8 +27,9 @@ public class uUi : BaseObject
 
     public RenderMode RenderMode { get => mCanvas.renderMode; }
 
-    private List<BasePanel> _panelList = new();
-    private List<BasePanel> _foreverPanel = new();
+    private Dictionary<string, UiPanelSOConfig> mUiPanelConfigDict = new();
+    private List<BasePanel> mPanelList = new();
+    private List<BasePanel> mForeverPanel = new();
 
     public uUi()
     {
@@ -65,10 +66,10 @@ public class uUi : BaseObject
     private void OnECSInput(GameInput.InputKey key, InputAction.CallbackContext context)
     {
         if (key != GameInput.InputKey.Ui_Esc || context.performed == false) return;
-        if (_panelList.Count > 1)
+        if (mPanelList.Count > 1)
         {
             Time.timeScale = 1;
-            var panel = _panelList[0];
+            var panel = mPanelList[0];
             ClosePanel(panel);
         }
         else
@@ -79,21 +80,37 @@ public class uUi : BaseObject
     }
     #endregion
 
-    public T CreatePanel<T>(object param = null) where T : BasePanel
+    public T CreatePanel<T>(object param = null) where T : BasePanel, new()
     {
         BasePanel panel = GetForeverPanel<T>();
-        if (panel == null)
+        if(panel == null)
         {
-            panel = Activator.CreateInstance<T>();
-            panel.param = param;
-            panel.InitPanel();
-            SetForeverPanel(panel);
+            panel = new T();
+            InitPanel($"{typeof(T).Name}SO", panel);
         }
+
         panel.Show(true);
+        panel.param = param;
         panel.transform.SetAsLastSibling();
-        _panelList.Insert(0, panel);
+        mPanelList.Insert(0, panel);
 
         return panel as T;
+    }
+
+    private void InitPanel(string configName, BasePanel panel)
+    {
+        if (!mUiPanelConfigDict.TryGetValue(configName, out var config))
+        {
+            config = uAsset.LoadAsset<UiPanelSOConfig>(configName);
+            mUiPanelConfigDict.Add(configName, config);
+        }
+        var go = LoadPanel(config);
+        panel.SetPanelData(go, config.Forever);
+        panel.InitPanel();
+        if (config.Forever)
+        {
+            mForeverPanel.Add(panel);
+        }
     }
 
     #region Get Func
@@ -104,7 +121,7 @@ public class uUi : BaseObject
 
     public T GetPanel<T>() where T : BasePanel
     {
-        foreach (var panel in _panelList)
+        foreach (var panel in mPanelList)
         {
             if (panel is T) return panel as T;
         }
@@ -114,7 +131,7 @@ public class uUi : BaseObject
     public bool TryGetPanel<T>(out BasePanel panel) where T : BasePanel
     {
         panel = null;
-        foreach (var item in _panelList)
+        foreach (var item in mPanelList)
         {
             if (item is not T) continue;
             panel = item as T;
@@ -125,7 +142,7 @@ public class uUi : BaseObject
 
     public T GetForeverPanel<T>() where T : BasePanel
     {
-        foreach (var panel in _foreverPanel)
+        foreach (var panel in mForeverPanel)
         {
             if (panel is T) return panel as T;
         }
@@ -134,10 +151,10 @@ public class uUi : BaseObject
     #endregion
 
     #region UiHandle Func
-    public GameObject LoadPanelGO(string name, PanelLevel panelType)
+    public GameObject LoadPanel(UiPanelSOConfig config)
     {
         Transform parent = mNormal;
-        switch (panelType)
+        switch (config.Level)
         {
             case PanelLevel.Background:
                 parent = mBackground;
@@ -154,9 +171,12 @@ public class uUi : BaseObject
             case PanelLevel.Top:
                 parent = mTop;
                 break;
+            default:
+                parent = mNormal;
+                break;
         }
-        var panel = uAsset.LoadGameObject(name, parent);
-        panel.name = name;
+        var panel = Object.Instantiate(config.PanelPrefab, parent, false);
+        panel.name = config.PanelPrefab.name;
         SetComponent(panel);
         return panel;
     }
@@ -182,20 +202,13 @@ public class uUi : BaseObject
         canvas.overrideSorting = true;
         canvas.sortingOrder = sortOrder;
     }
-
-    public void SetForeverPanel(BasePanel panel)
-    {
-        if (!panel.forever || _foreverPanel.Contains(panel)) return;
-        
-        _foreverPanel.Add(panel);
-    }
     #endregion
 
     private void EnableLastPanel()
     {
-        if (_panelList.Count > 0)
+        if (mPanelList.Count > 0)
         {
-            var panel = _panelList[0];
+            var panel = mPanelList[0];
             panel.Show(true);
         }
         else
@@ -207,10 +220,10 @@ public class uUi : BaseObject
     #region Close Panel
     public void ClosePanel(BasePanel panel, bool showNext = true)
     {
-        if (panel == null || !_panelList.Contains(panel)) return;
+        if (panel == null || !mPanelList.Contains(panel)) return;
 
         panel.OnClose();
-        _panelList.Remove(panel);
+        mPanelList.Remove(panel);
         if (panel.forever)
         {
             panel.Show(false);
@@ -227,17 +240,17 @@ public class uUi : BaseObject
 
     public void CloseAll()
     {
-        for (int i = _panelList.Count - 1; i >= 0; i--)
+        for (int i = mPanelList.Count - 1; i >= 0; i--)
         {
-            var panel = _panelList[0];
+            var panel = mPanelList[0];
             ClosePanel(panel, false);
         }
-        for (int i = _foreverPanel.Count - 1; i >= 0; i--)
+        for (int i = mForeverPanel.Count - 1; i >= 0; i--)
         {
-            Object.Destroy(_foreverPanel[i].gameObject);
+            Object.Destroy(mForeverPanel[i].gameObject);
         }
-        _panelList.Clear();
-        _foreverPanel.Clear();
+        mPanelList.Clear();
+        mForeverPanel.Clear();
     }
     #endregion
 

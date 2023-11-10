@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class UiUtility
 {
-    public static T CreateItem<T>(Transform parent = null) where T : UiBaseListItem
+    public static T CreateItem<T>(Transform parent = null) where T : UiBaseBasic
     {
         var name = typeof(T).Name;
         var prefab = uAsset.LoadAsset<GameObject>(name);

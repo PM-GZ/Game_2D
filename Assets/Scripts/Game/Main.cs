@@ -29,6 +29,7 @@ public class Main : MonoBehaviour
 
     private static bool mInitFlag = false;
 
+    public static uData Data { get; private set; }
     public static uUi Ui { get; private set; }
     public static GameInput Input { get; private set; }
     public static uScene Scene { get; private set; }
@@ -54,10 +55,12 @@ public class Main : MonoBehaviour
     private void Init()
     {
         InitManager();
+        Data.Init();
     }
 
     private void InitManager()
     {
+        Data = new();
         Input = new();
         Scene = new();
         Ui = new();

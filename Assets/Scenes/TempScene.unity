@@ -201,11 +201,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 350417203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 400}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -1920, y: 0}
+  m_SizeDelta: {x: 399, y: 400}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &299889100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -218,7 +218,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e6cf7954412114c8688a3c3a9ca165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UseRedDot: 0
   Content: {fileID: 299889099}
   Axis: 0
   CellSize: {x: 100, y: 100}
@@ -510,7 +509,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 177477451451681796, guid: 20c0ea6a6fee25443a0d777e84a3494c, type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
-      value: 31
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 5507362426683075241, guid: 20c0ea6a6fee25443a0d777e84a3494c, type: 3}
       propertyPath: m_Pivot.x
