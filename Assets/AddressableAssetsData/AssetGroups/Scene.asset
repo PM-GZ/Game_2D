@@ -18,7 +18,7 @@ MonoBehaviour:
   m_GUID: ffc64bd824e16d3438bc7e2d45d9dc84
   m_SerializeEntries:
   - m_GUID: 8c9cfa26abfee488c85f1582747f6a02
-    m_Address: LaunchScene
+    m_Address: LaunchScene.unity
     m_ReadOnly: 0
     m_SerializedLabels:
     - Scene

@@ -17,7 +17,7 @@ public class BasePanel : BaseObject
     {
         InitField();
         OnStart();
-        if(canvasGroup.alpha == 1)
+        if (canvasGroup.alpha == 1)
         {
             OnEnable();
         }
@@ -38,10 +38,9 @@ public class BasePanel : BaseObject
         var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         foreach (var field in fields)
         {
-            var attribute = field.GetCustomAttribute(typeof(UiBindAttribute), false);
-            var bind = attribute as UiBindAttribute;
-            if (bind == null) continue;
-            uiBinds.Add(bind.name, field);
+            var attribute = field.GetCustomAttribute<UiBindAttribute>(false);
+            if (attribute == null) continue;
+            uiBinds.Add(attribute.name, field);
         }
 
         foreach (var ui in gameObject.GetComponentsInChildren<IUiBaseBasic>(true))
@@ -54,16 +53,13 @@ public class BasePanel : BaseObject
                 {
                     field.SetValue(this, ui);
                 }
+                else if (ui.gameObject.TryGetComponent(field.FieldType, out var component))
+                {
+                    field.SetValue(this, component);
+                }
                 else
                 {
-                    if (ui.gameObject.TryGetComponent(field.FieldType, out var component))
-                    {
-                        field.SetValue(this, component);
-                    }
-                    else
-                    {
-                        Debug.LogError($"PAGE:{type.Name} WIDGET:{ui.gameObject.name} TYPE {field.FieldType.Name} NOT MATCH TO {control_type.Name}");
-                    }
+                    Debug.LogError($"PAGE:{type.Name} WIDGET:{ui.gameObject.name} TYPE {field.FieldType.Name} NOT MATCH TO {control_type.Name}");
                 }
             }
         }

@@ -17,33 +17,35 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: c08617e67f2c8b64c998bd3a5c78d557
   m_SerializeEntries:
-  - m_GUID: 8e33f2b0a6c46a24abe5c9ac7c63048e
-    m_Address: UiButton
+  - m_GUID: 2a136afdcd6cb014a9d20a41824b2835
+    m_Address: Dialog
     m_ReadOnly: 0
     m_SerializedLabels:
-    - Prefab
     - Ui
+    - Prefab
+    - Panel
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1cbf8217502ff194b8b8278c5a046fe1
-    m_Address: UiToggleGroup
+  - m_GUID: 364cd617f6908994cb9b6863d2db85fd
+    m_Address: ListItem
     m_ReadOnly: 0
     m_SerializedLabels:
-    - Prefab
     - Ui
+    - Prefab
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2038ad3333e17cb46bf7b69127b6310e
-    m_Address: UiSuppliesListItem
+  - m_GUID: d9992ff8a1811434494b0b6015ef011e
+    m_Address: Panel
     m_ReadOnly: 0
     m_SerializedLabels:
-    - Prefab
     - Ui
+    - Prefab
+    - Panel
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6807b83bc83cd8a43af9b47c6f4bee54
-    m_Address: UiCycleScroll
+  - m_GUID: 201d7b1dd6bef544784e71b5fb8f183a
+    m_Address: UiBasic
     m_ReadOnly: 0
     m_SerializedLabels:
-    - Prefab
     - Ui
+    - Prefab
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: b30fbbb24dfeedf48abfaef43826271f, type: 2}

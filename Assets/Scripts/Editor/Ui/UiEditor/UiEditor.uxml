@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Scripts/Editor/Ui/UiEditor/UiEditor.uss?fileID=7433441132597879392&amp;guid=673eaf3873bc6b34c87cee7db434b977&amp;type=3#UiEditor" />
+    <ui:VisualElement name="Top" style="flex-grow: 0; flex-shrink: 1; flex-direction: row; justify-content: flex-start;">
+        <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+            <ui:Button text="-" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cutdown" />
+            <ui:Button text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Add" />
+        </ui:VisualElement>
+        <ui:Button text="保存" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Save" style="flex-shrink: 0; flex-grow: 0; width: auto; translate: 0 0; min-height: auto; transform-origin: center;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Root" usage-hints="None" focusable="false" style="flex-grow: 1; flex-direction: row; flex-basis: auto; flex-shrink: 1; height: auto; align-items: stretch; align-self: stretch; min-height: auto; border-top-width: 1px; border-bottom-width: 0; border-bottom-color: rgb(34, 34, 34); border-top-color: rgb(34, 34, 34);">
+        <ui:ScrollView name="ConfigList" horizontal-scroller-visibility="Hidden" style="width: 30%; min-height: auto; border-top-width: 0; border-right-width: 1px; border-top-color: rgba(36, 36, 36, 0); border-right-color: rgb(36, 36, 36); flex-shrink: 0;" />
+        <ui:VisualElement name="Propertys" style="flex-grow: 1; padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; display: none;">
+            <uie:ObjectField label="预制体" name="Prefab" type="UnityEngine.GameObject, UnityEngine.CoreModule" allow-scene-objects="false" />
+            <ui:EnumField label="Ui层级" type="PanelLevel, Game" name="PanelLevel" value="Normal" />
+            <ui:Toggle label="内存永不回收" name="Forever" />
+            <ui:EnumField label="红点类型" type="RedDotSystem+RedDotType, Game" name="RedDotType" />
+            <uie:ObjectField label="Bgm" name="AudioClip" type="UnityEngine.AudioClip, UnityEngine.AudioModule" allow-scene-objects="false" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

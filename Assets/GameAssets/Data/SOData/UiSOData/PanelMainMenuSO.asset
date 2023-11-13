@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15a332d3e5025c14faa3b5bf0c0f7b14, type: 3}
   m_Name: PanelMainMenuSO
   m_EditorClassIdentifier: 
-  PanelPrefab: {fileID: 0}
-  Level: 0
+  PanelPrefab: {fileID: 5779247203953884071, guid: 1c1b3f3419ae68446ab9de1fed1597f1, type: 3}
+  Level: 1
   Forever: 0
   RedDotType: 0
   Bgm: {fileID: 0}
