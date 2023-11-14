@@ -11,7 +11,7 @@ using UnityEngine.UI;
 [InitializeOnLoad]
 public static class UiHierarchyEditor
 {
-    private static Texture mUiMaskIcon;
+    private static Texture mUiMarkIcon;
     private static Texture mUiScrpitIcon;
     private static Texture mBindIcon; 
     private static Texture mNameRepeatIcon;
@@ -63,7 +63,7 @@ public static class UiHierarchyEditor
     private static void InitIcon()
     {
         string floder = "Assets/Scripts/Editor/Ui/Icons/";
-        mUiMaskIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{floder}UiMask.png");
+        mUiMarkIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{floder}UiMark.png");
         mUiScrpitIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{floder}UiScript.png");
         mBindIcon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{floder}Binding.png");
         mNameRepeatIcon = EditorGUIUtility.FindTexture("CollabError");
@@ -86,7 +86,7 @@ public static class UiHierarchyEditor
             var rect_postion = new Vector2(rect.position.x - 30f, rect.position.y);
             if (uibasic.GetType() == typeof(UiMark))
             {
-                GUI.DrawTexture(new Rect(rect_postion, rect.height * Vector2.one), mUiMaskIcon, ScaleMode.ScaleToFit, true);
+                GUI.DrawTexture(new Rect(rect_postion, rect.height * Vector2.one), mUiMarkIcon, ScaleMode.ScaleToFit, true);
             }
             else
             {
