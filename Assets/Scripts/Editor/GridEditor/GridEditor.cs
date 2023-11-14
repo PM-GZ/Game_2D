@@ -8,6 +8,7 @@ public class GridEditor : EditorWindow
     private VisualElement mRoot;
     private VisualElement mLeft;
     private VisualElement mRight;
+    private BehaviourTreeView mTreeView;
 
     [MenuItem("Tools/GridEditor")]
     public static void ShowExample()
@@ -19,15 +20,14 @@ public class GridEditor : EditorWindow
     public void CreateGUI()
     {
         mRoot = rootVisualElement;
-        mRoot.style.flexDirection = FlexDirection.Row;
-
         Init();
     }
 
     private void Init()
     {
-        InitLeft();
+        //InitLeft();
         InitRight();
+        //var startNode = mTreeView.AddNode("Start");
     }
 
     private void InitLeft()
@@ -52,9 +52,8 @@ public class GridEditor : EditorWindow
         mRight.style.flexGrow = 1;
         mRoot.Add(mRight);
 
-        BehaviourTreeView treeView = new BehaviourTreeView();
-        treeView.style.flexGrow = 1;
-        mRight.Add(treeView);
+        mTreeView = new BehaviourTreeView();
+        mRight.Add(mTreeView);
     }
 
     private T CreateElement<T>() where T : VisualElement

@@ -21,7 +21,7 @@ public class uUi : BaseObject
     private Transform mBackground;
     private Transform mNormal;
     private Transform mFixed;
-    private Transform mDialog;
+    private Transform mPop;
     private Transform mTop;
     public Camera UiCamera { get; private set; }
 
@@ -40,7 +40,7 @@ public class uUi : BaseObject
         mBackground = mCanvas.transform.Find("Backgorund");
         mNormal = mCanvas.transform.Find("Normal");
         mFixed = mCanvas.transform.Find("Fixed");
-        mDialog = mCanvas.transform.Find("Dialog");
+        mPop = mCanvas.transform.Find("Pop");
         mTop = mCanvas.transform.Find("Top");
 
         InitInputEvent();
@@ -166,7 +166,7 @@ public class uUi : BaseObject
                 parent = mFixed;
                 break;
             case PanelLevel.Dialog:
-                parent = mDialog;
+                parent = mPop;
                 break;
             case PanelLevel.Top:
                 parent = mTop;

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -11,6 +13,8 @@ public class UiEditor : EditorWindow
     [SerializeField]
     private VisualTreeAsset m_VisualTreeAsset = default;
     private VisualElement mRoot;
+    private Button mCutdown;
+    private Button mAdd;
     private Button mSave;
     private ScrollView mConfigList;
     private VisualElement mPropertys;
@@ -22,6 +26,7 @@ public class UiEditor : EditorWindow
 
     private List<UiPanelSOConfig> mUiConfigList = new();
     private int mCurIndex;
+    private string mFloder;
 
     [MenuItem("Tools/UiEditor")]
     public static void ShowExample()
@@ -34,14 +39,23 @@ public class UiEditor : EditorWindow
     public void CreateGUI()
     {
         mRoot = rootVisualElement;
+        mRoot.Clear();
         mRoot.Add(m_VisualTreeAsset.CloneTree());
+        mUiConfigList.Clear();
 
         FindComponents();
         Init();
     }
 
+    private void OnFocus()
+    {
+        CreateGUI();
+    }
+
     private void FindComponents()
     {
+        mCutdown = mRoot.Q<Button>("Cutdown");
+        mAdd = mRoot.Q<Button>("Add");
         mSave = mRoot.Q<Button>("Save");
         mConfigList = mRoot.Q<ScrollView>("ConfigList");
         mPropertys = mRoot.Q<VisualElement>("Propertys");
@@ -51,6 +65,8 @@ public class UiEditor : EditorWindow
         mRedDotType = mRoot.Q<EnumField>("RedDotType");
         mAudioClip = mRoot.Q<ObjectField>("AudioClip");
 
+        mCutdown.clicked += OnCutdownClick;
+        mAdd.clicked += OnAddClick;
         mSave.clicked += OnSaveClick;
     }
 
@@ -83,6 +99,72 @@ public class UiEditor : EditorWindow
         mForever.value = config.Forever;
         mRedDotType.value = config.RedDotType;
         mAudioClip.value = config.Bgm;
+    }
+
+    private void OnCutdownClick()
+    {
+        switch ((PanelLevel)mPanelLevel.value)
+        {
+            case PanelLevel.Background:
+            case PanelLevel.Normal:
+            case PanelLevel.Fixed:
+            case PanelLevel.Top:
+                mFloder = "Panel";
+                break;
+            case PanelLevel.Dialog:
+                mFloder = "Dialog";
+                break;
+        }
+        if (EditorUtility.DisplayDialog("提示", "此操作将会删除 SO、脚本以及预制体！！！", "确认", "取消"))
+        {
+            var config = mUiConfigList[mCurIndex];
+            string name = config.name.Substring(0, config.name.IndexOf("SO"));
+            string prefabPath = $"Assets/GameAssets/Ui/{mFloder}/{name}/{name}.prefab";
+            string scriptPath = $"Assets/Scripts/Game/Ui/{mFloder}/{name}/{name}.cs";
+            string SOPath = $"Assets/GameAssets/Data/SOData/UiSOData/{config.name}.asset";
+
+            string floderPath = Directory.GetParent(prefabPath).FullName;
+            int fileCount = 0;
+            if (File.Exists(prefabPath))
+            {
+                fileCount = Directory.GetFiles(floderPath, "*.prefab", SearchOption.AllDirectories).Length;
+                if (fileCount == 1)
+                {
+                    File.Delete($"{Directory.GetParent(floderPath).FullName}/{name}.meta");
+                    Directory.Delete(floderPath, true);
+                }
+                else
+                {
+                    File.Delete(prefabPath);
+                }
+            }
+            floderPath = Directory.GetParent(scriptPath).FullName;
+            if (File.Exists(scriptPath))
+            {
+                fileCount = Directory.GetFiles(floderPath, "*.cs", SearchOption.AllDirectories).Length;
+                if (fileCount == 1)
+                {
+                    File.Delete($"{Directory.GetParent(floderPath).FullName}/{name}.meta");
+                    Directory.Delete(floderPath, true);
+                }
+                else
+                {
+                    File.Delete(scriptPath);
+                }
+            }
+            if (File.Exists(SOPath))
+            {
+                File.Delete(SOPath);
+            }
+            AssetDatabase.Refresh();
+            EditorUtility.DisplayDialog("提示", "删除完成", "确认");
+        }
+    }
+
+    private void OnAddClick()
+    {
+        CreateUiEditor wnd = GetWindow<CreateUiEditor>();
+        wnd.titleContent = new GUIContent("Create Ui");
     }
 
     private void OnSaveClick()
